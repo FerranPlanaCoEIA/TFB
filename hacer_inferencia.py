@@ -1,15 +1,36 @@
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
-import pickle
 import os
-import requests
-import json
-from groq import Groq
+from helpers.crear_indice import load_data
+from helpers.hacer_inferencia import get_similar_chunks
 
 
+###### Parámetros
+top_n=3
+question = "¿Es necesario saber mucho del Cosmere para poder leer alguno de los libros?"
+######
 
 
+# Parte 2: Responder preguntas
+script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
+save_folder = os.path.join(script_dir, 'Indice')
+
+
+# Cargar los datos procesados
+chunks, embeddings, model = load_data(save_folder)
+
+
+# Obtener los chunks más similares
+similar_chunks = get_similar_chunks(question, chunks, embeddings, model, top_n)
+
+# Mostrar los resultados
+user_prompt=f"Pregunta: {question}\n\nConocimiento:\n"
+print("Los 10 chunks más similares a tu pregunta son:\n")
+for i, (chunk, similarity) in enumerate(similar_chunks, 1):
+    # Desempaquetar la tupla (doc_id, doc_name, chunk_number, chunk_text)
+    doc_id, doc_name, chunk_number, chunk_text = chunk
+    url=f"https://es.coppermind.net/wiki/{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
+    print(f"{i}. DOCID: {doc_id} | Document Name: {url} | Chunk number: {chunk_number} | Similarity: {similarity:.4f}\n{chunk_text}\n")
+    name_doc=f"{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
+    user_prompt+=f"{name_doc}: {chunk_text}\n"
 
 
 
