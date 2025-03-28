@@ -3,7 +3,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import pickle
 import os
-
+import requests
+import json
+from groq import Groq
 
 
 # Función para procesar archivos Markdown
@@ -57,6 +59,7 @@ def process_all_markdown_files(carpeta_path):
     all_chunks = []
 
     for file in files_array:
+        print(file)
         doc_id = files_array.index(file)
         file_path = os.path.join(carpeta_path, file)
         chunks = process_markdown(file_path, doc_id, file)
@@ -75,7 +78,7 @@ def get_similar_chunks(question, chunks, embeddings, model, top_n):
 
 # Parte 1: Procesar todos los archivos md y guardar los datos
 script_dir = os.path.dirname(os.path.abspath(__file__)) # Carpeta raíz
-carpeta_path = os.path.join(script_dir, 'Documentacion')
+carpeta_path = os.path.join(script_dir, 'Base de datos')
 save_folder = os.path.join(script_dir, 'Indice')
 
 print("Procesando archivos Markdown...")

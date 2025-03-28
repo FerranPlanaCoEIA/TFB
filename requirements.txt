@@ -3,3 +3,5 @@ scikit-learn==1.6.1
 numpy==2.0.2
 pickleshare==0.7.5
 jsonpickle==4.0.2
+requests==2.32.3
+groq==0.20.0
