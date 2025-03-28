@@ -1,7 +1,11 @@
 import os
+from dotenv import load_dotenv
 from helpers.crear_indice import load_data
 from helpers.hacer_inferencia import get_similar_chunks
+from helpers.LLM_prompts import LLMs_system_prompts
+from helpers.hacer_inferencia import get_LLM_response
 
+load_dotenv()
 
 ###### Parámetros
 top_n=3
@@ -33,4 +37,13 @@ for i, (chunk, similarity) in enumerate(similar_chunks, 1):
     user_prompt+=f"{name_doc}: {chunk_text}\n"
 
 
+
+
+APIkey_OpenRouter=os.getenv("LLMsAPIkey")
+APIkey_Groq=os.getenv("LLMsAPIkey_Groq")
+
+system_prompt=LLMs_system_prompts("elaborate_responses","","")
+respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,"google/gemini-2.0-pro-exp-02-05:free",user_prompt,system_prompt)
+#respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,"llama-3.3-70b-versatile",user_prompt,system_prompt)
+print(respuesta_LLM)
 
