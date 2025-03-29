@@ -7,5 +7,7 @@ venv/
 # Ignorar todos los md y html de la carpeta "Base de datos"
 Base de datos/*.md
 Base de datos/*.html
-# Ignorar los .pkl de la carpeta "Indice"
-Indice/*.pkl
+# Ignorar todos los .pkl
+*.pkl
+# Ignorar todos los .xlsx
+*.xlsx

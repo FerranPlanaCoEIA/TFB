@@ -151,9 +151,9 @@ Se han hecho estas pruebas para un _chunk size_ de 50, 75, 100 y 200 tokens, y _
 |            | 5     | 72,79% | 55,88%     | 55,88%       |
 |            | 10    | 83,09% | 63,97%     | 63,97%       |
 |            | 15    | 86,76% | 69,12%     | 69,85%       |
-| 100        | 3     | 66,18% | 51,47%     | 44,85%       |
+| **100**        | 3     | 66,18% | 51,47%     | 44,85%       |
 |            | 5     | 75,74% | 60,29%     | 52,94%       |
-|            | 10    | 84,56% | 66,91%     | 66,18%       |
+|            | **10**    | **84,56%** | **66,91%**     | **66,18%**       |
 |            | 15    | 88,24% | 69,85%     | 72,79%       |
 | 200        | 3     | 61,03% | 47,06%     | 44,12%       |
 |            | 5     | 65,44% | 53,68%     | 52,21%       |
@@ -171,7 +171,20 @@ En resumen, los parámetros elegidos han sido **_chunk size_ = 100 _tokens_, _ch
 Por otro lado, como más adelante se va a analizar el LLM a utilizar para responder a las preguntas, así como su temperatura, cabría preguntarse si este análisis fijando el LLM es válido para otros. La realidad es que no, pero se ha hecho así para reducir el número de pruebas a hacer. Aunque los resultados del análisis del _chunk size_, _overlap_ y _top n_ probablemente cambien de un LLM a otroz, se ha supuesto que no serán cambios significativos.  
 </p>
 
-### III.II. Modelo de _embeddings_
+### III.II. Modelo de _embeddings_  
+
+En el momento que se hicieron los tests III.I pensaba que el modelo de _embeddings_ que estaba utilizando, _paraphrase-MiniLM-L6-v2_, era el mejor. Sin embargo, en una de las clases me hicieron saber que este modelo no está entrenado en español, por lo que es fundamental encontrar uno que funcione mejor entrenado específicamente en español.  
+
+Lo ideal sería hacer primero este test y después el III.I, ya que es más determinante el modelo de _embeddings_ utilizado. Sin embargo, como el test III.I consume mucho tiempo, asumiremos el error producido por hacerlo en este orden.  
+
+Los modelos de _embeddings_ que vamos a comparar son los siguientes:  
+
+* _paraphrase-MiniLM-L6-v2_ (as-is, entrenado solo en inglés)
+* _paraphrase-multilingual-MiniLM-L12-v2_  
+* _paraphrase-multilingual-mpnet-base-v2_
+* _distiluse-base-multilingual-cased-v2_
+* _stsb-xlm-r-multilingual_
+* _finetuned_sentence_similarity_spanish_
 
 ### III.III. LLM de generación de la respuesta  
 
