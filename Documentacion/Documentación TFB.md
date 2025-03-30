@@ -66,9 +66,7 @@ qué libro fue eso respondió *Brazales de Duelo")*. * La misión de Hoid quizá
 
 Además, se puede obtener una gráfica interesante: el histograma de la similitud entre cada <i>chunk</i> de la base de datos y la pregunta.  
 
-<p align="center">
-  <img src="Images/distribucion-similitudes.png" alt="devcontainer-open">
-</p>
+![](Images/distribucion-similitudes.png){ width=50%, align=center }
 
 <span style="color: red;">(Script en Creación de la base de datos.ipynb, Google Colab)</span>
 </p>
@@ -179,9 +177,7 @@ Se han hecho estas pruebas para un <i>chunk size</i> de 50, 75, 100 y 200 tokens
 |            | 10    | 74,26% | 53,68%     | 56,62%       |
 |            | 15    | 79,41% | 58,09%     | 59,56%       |
 
-<p align="center">
-  <img src="Images/chunksize-topn.jpg" alt="devcontainer-open">
-</p>  
+![](Images/chunksize-topn.jpg){ width=50%, align=center }
 
 <p style="text-align: justify;">
 A raíz de estos resultados se utilizará un <i>chunk size</i> de 100 <i>tokens</i> (por tanto, un <i>chunk overlap</i> de 20 <i>tokens</i>) y un <i>top n</i> de 10 <i>chunks</i>. Se escoge esto por varias razones. En primer lugar, es el que mayor porcentaje de OK arroja en OK de la respuesta para <i>top n</i> de 10, junto a un <i>chunk size</i> de 50. Se elige sobre este porque, para resultados iguales, un <i>chunk size</i> de 100 ofrece más contexto. No se escoge <i>chunk size</i> de 100 y <i>top n</i> de 15 porque la mejora en esta métrica no es demasiada. Además, hay que tener en cuenta el tiempo de respuesta del modelo, una métrica que en este caso no se ha evaludao, pero que es fundamental, ya que esta aplicación de IA es un <i>chatbot</i>.  
