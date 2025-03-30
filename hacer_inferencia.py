@@ -43,7 +43,7 @@ APIkey_OpenRouter=os.getenv("LLMsAPIkey")
 APIkey_Groq=os.getenv("LLMsAPIkey_Groq")
 
 system_prompt=LLMs_system_prompts("elaborate_responses","","")
-respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,"google/gemini-2.0-pro-exp-02-05:free",user_prompt,system_prompt)
-#respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,"llama-3.3-70b-versatile",user_prompt,system_prompt)
+#respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,"google/gemini-2.0-pro-exp-02-05:free",user_prompt,system_prompt)
+respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,"llama-3.3-70b-versatile",user_prompt,system_prompt)
 print(respuesta_LLM)
 
