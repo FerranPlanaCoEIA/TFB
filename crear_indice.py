@@ -1,5 +1,6 @@
 import os
 import time
+import math
 from helpers.crear_indice import process_all_markdown_files
 from helpers.crear_indice import create_embeddings
 from helpers.crear_indice import save_data
@@ -35,6 +36,6 @@ else:
 
 end_time = time.time()
 total_time = end_time - start_time
-print(f"Tiempo tardado en crear el índice: {round(total_time/60)} min y \
-      {round(total_time-round(total_time/60)*60)} s")
+print(f"Tiempo tardado en crear el índice: {math.trunc(total_time/60)} min y \
+      {round(total_time-math.trunc(total_time/60)*60)} s")
 

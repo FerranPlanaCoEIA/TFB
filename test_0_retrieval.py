@@ -5,7 +5,7 @@ from helpers.crear_indice import load_data
 from helpers.hacer_inferencia import get_similar_chunks
 
 ###### Parámetros
-top_n=3
+top_n=10
 ######
 
 print("Ejecutando...")

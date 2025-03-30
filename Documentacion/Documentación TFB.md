@@ -186,6 +186,12 @@ Los modelos de _embeddings_ que vamos a comparar son los siguientes:
 * _stsb-xlm-r-multilingual_
 * _finetuned_sentence_similarity_spanish_
 
+Por desgracia, y debido a las limitaciones de tener que usar llamadas gratis via API a LLMs ofrecidos por distintos proveedores, el LLM de elaboración de la respuesta que usé en el test III.I, _Google: Gemini Pro 2.0 Experimental (free)_, ya no está disponible. Debido a esto voy a tener que utilizar otro, _Google: Gemini 2.0 Flash Thinking Experimental 01-21 (free)_. Aún así, esto no invalida las conclusiones de este test.
+
+
+
+La diferencia entre los resultados de los tests III.I y III.II se explica debido a que entre el primer test y el segundo hubo ciertas actualizaciones en la wikipedia.
+
 ### III.III. LLM de generación de la respuesta  
 
 A continuación, se evaluará qué LLM se utilizará para generar la respuesta a partir del conocimiento encontrado. Para ello, se evaluarán las tres métricas anteriores (OK RAG, OK FUENTES y OK RESPUESTA), además del tiempo de respuesta de cada modelo.
