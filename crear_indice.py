@@ -10,7 +10,7 @@ from helpers.crear_indice import save_data
 ###### Parámetros
 chunk_size=100
 chunk_overlap=20
-model_embeddings="paraphrase-MiniLM-L6-v2"
+model_embeddings="paraphrase-multilingual-mpnet-base-v2"
 ######
 
 # Parte 1: Procesar todos los archivos md y guardar los datos

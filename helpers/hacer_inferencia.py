@@ -106,9 +106,9 @@ def get_LLM_response(proveedor,apikey,endpoint_model,user_prompt,system_prompt):
       print(f"Error al decodificar la respuesta JSON: {e}")
       return "ERROR"
 
-    #except Exception as e:
+    except Exception as e:
       # Capturar cualquier otro error no previsto
-      #print(f"Error inesperado: {e}")
-      #return "ERROR"
+      print(f"Error inesperado: {e}")
+      return "ERROR"
 
 
