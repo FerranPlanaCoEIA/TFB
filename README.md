@@ -1,6 +1,8 @@
 # TFB
 Chatbot de la Coppermind
 
+!!! warning
+    Este repositorio debe ser ejecutado en python 3.11.11. Hacerlo en otra versión podría producir fallos o errores de dependencias a la hora de instalar los requirements.
 
 ## Pasar la documentación a pdf  
 
