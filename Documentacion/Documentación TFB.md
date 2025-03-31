@@ -10,7 +10,9 @@
 
 <p style="text-align: justify;">
 En primer lugar, he elegido la lista de entradas de la <i>wikipedia</i> que quiero utilizar como base de datos. Me he decantado por centrarme no en una saga en concreto, sino en los conceptos que son comunes a toda saga, a todo el universo del <i>Cosmere</i>.  
+</p>
 
+<p style="text-align: justify;">
 Adjunto la [_lista_](https://drive.google.com/file/d/1-2jTNQljoHThvsco3jfIMhAOamoCOCqM/view?usp=sharing) con las urls de las entradas elegidas. He hecho un script que descarga el html a partir de la lista de urls. La descarga de cada entrada, al ser de una web, ha sido en formato html.   
 <span style="color: red;">(Script en Creación de base de datos-TFB.ipynb en local)</span>
 </p>
@@ -25,7 +27,9 @@ Para optimizar el RAG he convertido los htmls en markdown. Además, he hecho cie
 * Eliminación de imágenes.  
 * Eliminación de la sección de notas en adelante (sección donde se ponen todas las referencias, no aporta valor).  
 
+<p style="text-align: justify;">
 De momento no voy a hacer más tratamiento al texto. Más adelante, con la ayuda del Test Automático, estudiaré si sería conveniente.
+</p>
 
 <span style="color: red;">(Script en html_to_markdown.ipynb en local, luego subir markdowns al drive)</span>  
 </p>
@@ -34,11 +38,13 @@ De momento no voy a hacer más tratamiento al texto. Más adelante, con la ayuda
 
 <p style="text-align: justify;">
 Una vez procesado el contenido de cada entrada, he dividido el texto completo de la base de datos en <i>chunks</i> con un <i>overlap</i> del 20% (el tamaño del <i>chunk</i> está por ver, a estudiar con el Test Automático). He hecho los <i>embeddings</i> con el modelo <i>paraphrase-MiniLM-L6-v2</i>, un modelo de transformers que es relativamente compacto y eficiente cuya principal aplicaciión es la búsqueda semántica. He obtenido el modelo de <i>Hugging Face</i>.  
+</p>
 
+<p style="text-align: justify;">
 El código divide el texto en <i>chunks</i>, hace los <i>embeddings</i> de cada <i>chunk</i> y guarda en <i>Google Drive</i> cada <i>chunk</i> y <i>embedding</i> con varios metadatos asociados: el número de <i>chunk</i> (entre todos los <i>chunks</i> del documento), el número de documento o <i>DOCID</i> (número de entrada de las totales) y su nombre (la <i>url</i> asociada, o algo similar).  
+</p>
 
 <span style="color: red;">(Script en Creación de la base de datos.ipynb, Google Colab)</span>
-</p>
 
 ## II. Funcionamiento del <i>RAG</i>
 
@@ -50,8 +56,11 @@ Un modelo <i>RAG</i> (<i>Retrieval-Augmented Generation</i>) consiste en dos par
 
 <p style="text-align: justify;">
 Una vez hechos y guardados los <i>embeddings</i>, podemos acceder a ellos mediante <i>Google Drive</i>. Al hacer una pregunta, se hace el <i>embedding</i> de esa pregunta y se calcula la similitud entre esa pregunta y todos los <i>embeddings</i> de la base de datos. Otro de los hiperparámetros, junto con el tamaño de <i>chunk</i> y el <i>overlap</i>, es <i>top-n</i>, el número de chunks con más similitud que nos quedamos. El valor óptimo de este hiperparámetro también lo decidiremos con la ayuda del Test Automático.  
+</p>
 
+<p style="text-align: justify;">
 Al hacer una pregunta, obtenemos los <i>chunks</i> con mayor similitud, el número de <i>chunk</i>, el <i>DOCID</i>, su nombre y la similitud entre ese <i>chunk</i> y la pregunta. Quedaría esto:
+</p>
 
 > Question: ¿Se puede leer algún libro del Cosmere sin haber leído otras sagas?
 > The 3 chunks most similar to your question are:
@@ -75,8 +84,11 @@ Además, se puede obtener una gráfica interesante: el histograma de la similitu
 
 <p style="text-align: justify;">
 Esos <i>chunks</i> con mayor similitud con la pregunta se le pasan, junto con la pregunta del usuario, a un <i>LLM</i>, pidiéndole que responda a la pregunta del usuario en base a los <i>chunks</i> encontrados. 
+</p>
 
+<p style="text-align: justify;">
 El modelo seleecionado se decidirá más adelante a raíz de una serie de tests. Para esta y posteriores llamadas a <i>LLMs</i> se utilizarán varios proveedores que permiten hacer llamadas gratis vía API (ver [_LLMs_free_API_keys.ipynb_](https://drive.google.com/file/d/1F9DaZLL1n1gUDcGtaeGBuQ-fTJLYN5xE/view?usp=sharing) para más detalles).  
+</p>
 
 El <i>system prompt</i> es el siguiente:  
 
@@ -105,6 +117,7 @@ El <i>user prompt</i> es el siguiente:
 > Conocimiento:  
 > {Nombre del documento del chunk}: {contenido del chunk}
 
+<p style="text-align: justify;">
 Como se puede observar, no solo se le pide al <i>LLM</i> que componga la respuesta, sino que cite sus fuentes. De esta forma el usuario puede, con solo pinchar en el nombre de la referencia, acceder a dicha entrada de la <i>wikipedia</i> mediante la <i>url</i>.
 </p>
 
@@ -112,12 +125,19 @@ Como se puede observar, no solo se le pide al <i>LLM</i> que componga la respues
 
 <p style="text-align: justify;">
 Con el objetivo de poder valorar si los cambios tienen un impacto positivo en el modelo, he creado un test de regresión, al que llamaré Test Automático. Este test consiste en 137 preguntas de las que sé la respuesta correcta, a la que llamaré respuesta <i>best</i>, y la entrada (o entradas) de la wikipedia donde se responde a esa pregunta, que llamaré documento <i>best</i>. El test consistirá en 3 subtests:  
+</p>
 
+<p style="text-align: justify;">
 * OK/KO RAG: Porcentaje de preguntas en las que el documento/s <i>best</i> se encuentra entre los encontrados por la búsqueda semántica.  
+</p>
 
+<p style="text-align: justify;">
 * OK/KO <i>LLM</i>: Porcentaje de preguntas en las que el documento/s <i>best</i> se encuentra entre los elegidos por el <i>LLM</i> para redactar la respuesta.  
+</p>
 
+<p style="text-align: justify;">
 * OK/KO <i>LLM as a judge</i>: Porcentaje de preguntas en las que un segundo <i>LLM</i> valora que la respuesta del primer modelo se ajusta a la respuesta <i>best</i>. El LLM elegido para el test de <i>LLM as a judge</i> es el <i>Llama 3.3 70B versatile</i>, ya que es un <i>LLM</i> grande, la útima versión de los modelos <i>LLama</i> y apto para gran variedad de tareas.   
+</p>
 
 <span style="color: red;">(Script en Test Automático.ipynb, Google Colab)</span>
 
@@ -146,6 +166,7 @@ El <i>user prompt</i> es el siguiente:
 
 <span style="color: red;">EXPLICAR, DECIR LOS % OK, LLM AS A JUDGE?, ENLACE AL GS Y A UN EJEMPLO DEL GS EJECUTADO, ENLACE A EXCEL DE RESULTADOS, ETC. </span> 
 
+<p style="text-align: justify;">
 Las preguntas, documento/s <i>best</i> y respuestas <i>best</i> se pueden ver aquí: [_Input Test Automático.xlsx_](https://docs.google.com/spreadsheets/d/1gs--ymPUeTYjbyf6AwcPHpowz6-6ehQb/edit?usp=sharing&ouid=117815217117454739708&rtpof=true&sd=true).
 </p>
 
@@ -154,7 +175,9 @@ Las preguntas, documento/s <i>best</i> y respuestas <i>best</i> se pueden ver aq
 
 <p style="text-align: justify;">
 El primer objetivo de este test es determinar el tamaño óptimo de los <i>chunks</i> de la base de datos. Para eso se ha ejecutado el test con varios <i>chunk size</i> distintos, así como para varios <i>top n</i> (el número de <i>chunks</i> pasados al <i>LLM</i> para redactar la respuesta). En este caso se ha fijado el <i>LLM</i> de elaboración de la respuesta y varios de sus parámetros. El <i>LLM</i> ha sido <i>Google Gemini 2.0 pro experimental</i>, aunque más adelante se comaprarán varios modelos y se eligirá el mejor. La temperatura se ha fijado a 0 para aumentar la reproducibilidad de los tests y reducir su variabilidad. Además, se ha fijado la <i>repetition penalty</i> a 0 para intentar producir respuestas concisas. Por último, el <i>chunk overlap</i> se ha fijado por defecto al 20%.  
+</p>
 
+<p style="text-align: justify;">
 Se han hecho estas pruebas para un <i>chunk size</i> de 50, 75, 100 y 200 tokens, y <i>top n</i> de 3, 5, 10 y 15 <i>chunks</i>. El resultado en detalle de las pruebas puede verse aquí: [_Chunk sze-overlap-topn.xlsx_](https://docs.google.com/spreadsheets/d/1rY1Kpd-hpIVb6air6aGdrMKY75ROrlt2/edit?usp=sharing&ouid=117815217117454739708&rtpof=true&sd=true).  
 </p>
 
@@ -180,9 +203,10 @@ Se han hecho estas pruebas para un <i>chunk size</i> de 50, 75, 100 y 200 tokens
 ![](Images/chunksize-topn.jpg){ width=50%, align=center }
 
 <p style="text-align: justify;">
-A raíz de estos resultados se utilizará un <i>chunk size</i> de 100 <i>tokens</i> (por tanto, un <i>chunk overlap</i> de 20 <i>tokens</i>) y un <i>top n</i> de 10 <i>chunks</i>. Se escoge esto por varias razones. En primer lugar, es el que mayor porcentaje de OK arroja en OK de la respuesta para <i>top n</i> de 10, junto a un <i>chunk size</i> de 50. Se elige sobre este porque, para resultados iguales, un <i>chunk size</i> de 100 ofrece más contexto. No se escoge <i>chunk size</i> de 100 y <i>top n</i> de 15 porque la mejora en esta métrica no es demasiada. Además, hay que tener en cuenta el tiempo de respuesta del modelo, una métrica que en este caso no se ha evaludao, pero que es fundamental, ya que esta aplicación de IA es un <i>chatbot</i>.  
-En resumen, los parámetros elegidos han sido <b><i>chunk size</i> = 100 <i>tokens</i>, <i>chunk overlap</i> = 20 <i>tokens</i>, <i>top n</i> = 10 <i>chunks</i></b>.  
+A raíz de estos resultados se utilizará un <i>chunk size</i> de 100 <i>tokens</i> (por tanto, un <i>chunk overlap</i> de 20 <i>tokens</i>) y un <i>top n</i> de 10 <i>chunks</i>. Se escoge esto por varias razones. En primer lugar, es el que mayor porcentaje de OK arroja en OK de la respuesta para <i>top n</i> de 10, junto a un <i>chunk size</i> de 50. Se elige sobre este porque, para resultados iguales, un <i>chunk size</i> de 100 ofrece más contexto. No se escoge <i>chunk size</i> de 100 y <i>top n</i> de 15 porque la mejora en esta métrica no es demasiada. Además, hay que tener en cuenta el tiempo de respuesta del modelo, una métrica que en este caso no se ha evaludao, pero que es fundamental, ya que esta aplicación de IA es un <i>chatbot</i>. En resumen, los parámetros elegidos han sido <b><i>chunk size</i> = 100 <i>tokens</i>, <i>chunk overlap</i> = 20 <i>tokens</i>, <i>top n</i> = 10 <i>chunks</i></b>.  
+</p>
 
+<p style="text-align: justify;">
 Por otro lado, como más adelante se va a analizar el <i>LLM</i> a utilizar para responder a las preguntas, así como su temperatura, cabría preguntarse si este análisis fijando el <i>LLM</i> es válido para otros. La realidad es que no, pero se ha hecho así para reducir el número de pruebas a hacer. Aunque los resultados del análisis del <i>chunk size</i>, <i>overlap</i> y <i>top n</i> probablemente cambien de un <i>LLM</i> a otro, se ha supuesto que no serán cambios significativos.  
 </p>
 
@@ -190,8 +214,11 @@ Por otro lado, como más adelante se va a analizar el <i>LLM</i> a utilizar para
 
 <p style="text-align: justify;">
 En el momento que se hicieron los tests III.I pensaba que el modelo de <i>embeddings</i> que estaba utilizando, <i>paraphrase-MiniLM-L6-v2</i>, era el mejor. Sin embargo, en una de las clases me hicieron saber que este modelo no está entrenado en español, por lo que es fundamental encontrar uno que funcione mejor entrenado específicamente en español.  
+</p>
 
+<p style="text-align: justify;">
 Lo ideal sería hacer primero este test y después el III.I, ya que es más determinante el modelo de <i>embeddings</i> utilizado. Sin embargo, como el test III.I consume mucho tiempo, asumiremos el error producido por hacerlo en este orden.  
+</p>
 
 Los modelos de <i>embeddings</i> que vamos a comparar son los siguientes:  
 
@@ -202,11 +229,9 @@ Los modelos de <i>embeddings</i> que vamos a comparar son los siguientes:
 * <i>stsb-xlm-r-multilingual</i> 
 * <i>finetuned_sentence_similarity_spanish</i> 
 
+<p style="text-align: justify;">
 Por desgracia, y debido a las limitaciones de tener que usar llamadas gratis via API a <i>LLMs</i> ofrecidos por distintos proveedores, el <i>LLM</i> de elaboración de la respuesta que usé en el test III.I, <i>Google: Gemini Pro 2.0 Experimental (free)</i>, ya no está disponible. Debido a esto voy a tener que utilizar otro, <i>Google: Gemini 2.0 Flash Thinking Experimental 01-21 (free)</i>. Aún así, esto no invalida las conclusiones de este test.
 </p>
-
-
-
 
 ### III.III. <i>LLM</i> de generación de la respuesta  
 
@@ -226,8 +251,59 @@ A continuación, se evaluará qué <i>LLM</i> se utilizará para generar la resp
 
 # Posibles mejoras
 
+<p style="text-align: justify;">
+En esta sección voy a detallar las posibles mejoras que hacer a este trabajo. Son ideas que han salido durante la realización del mismo o gracias a las clases recibidas, que no se alejan demasiado de los objetivos del trabajo, pero que o bien son demasiado ambiciosas o bien no ha dado tiempo a hacerlas. 
+</p> 
+
+## 1. <i>LLms</i> de pago
+
+<p style="text-align: justify;">
+Si ha habido algo que haya lastrado este trabajo es la limitación que teníamos de utilizar llamdas gratis via <i>API</i> a <i>LLMs</i> ofrecidos por distintos proveedores. Esto ha hecho que estemos restringidos en cuanto a los modelos que utilizar, tengamos que crear varias cuentas por proveedor para poder sortear esos <i>rate limit</i>, no podamos automatizar del todo los test automáticos, etc. Además, los mejores <i>LLMs</i> no se ofrecen gratis, por lo que contratar alguno puede aumentar también el desempeño del <i>RAG</i>, además de probablemente reducir los tiempos de inferencia.
+</p>
+
+<p style="text-align: justify;">
+Por otro lado, utilizar el modelo de <i>embeddings</i> de <i>OpenAI</i> mejoraría significativamente los resultados de la parte del <i>restrieval</i>, ya que es un modelo grande pero que no necesita ser alojado en local, por lo que además es rápido. En clases y prácticas anteriores hemos discutido y comprobado la mejora notable por utilizar este modelo.  
+</p>
+
+## 2. <i>Prompts</i>  
+
+<p style="text-align: justify;">
+En cuanto a los <i>prompts</i>, el prompt que utilizo en este trabajo, tanto para la elaboración de la respuesta como para la parte del <i>LLM as a judge</i> del test automático, son los que han funcionado para el modelo <i>Google: Gemini Pro 2.0 Experimental (free)</i>. Que funcionaran bien con ese modelo no implica que funcionen también con el resto, por lo que una posible mejora podría ser encontrar el <i>prompt</i> ideal para cada <i>LLM</i> utilizado. Además, se podría haber aplicado la técnica <i>Few-Shot Prompting</i> para incluir algún ejemplo de cómo elaborar la respuesta y referenciar los documentos adecuados.  
+</p>
+
+<p style="text-align: justify;">
+Otra cosa que me gustaría haber hecho mejor es la gestión de los prompts. En el repositorio del código están incluidas en un <i>script</i> de <i>python</i>, pero deben poder guardarse y tratar las versiones con alguna herramienta externa que sea más idónea.  
+</p>
+
+## 3. Test Automático  
+
+<p style="text-align: justify;">
+Una mejora clara en esta parte es incluir el tiempo de inferencia medio de cada test. Esta es una métrica funcamental para soluciones tipo <i>RAG</i>. Esta es además una métrica que, de poner esta solución en producción, mejoraría mucho, ya que los <i>LLMs</i> y modelos de <i>embeddings</i> de pago son mucho más rápidos.  
+</p>
+
+<p style="text-align: justify;">
+Por otro lado, el test puede no ser todo lo representativo que pretende, ya que el número de preguntas de cada documento no lo he decidido de forma rigurosa. Podría hacerse que el porcentaje de preguntas sobre cada documento dependa de la longitud de cada documento de la base de datos.  
+</p>
+
+<p style="text-align: justify;">
+A su vez, los resultados de cada test se han enviado a un <i>Excel</i>, cosa que no es ni muy limpia ni muy escalable. Lo que podría hacerse es enviar los resultados y parámetros de cada test a <i>MLflow</i>.
+</p>
+
+## 4. Métricas de <i>Ragas</i> 
+
+<p style="text-align: justify;">
+Una mejora que sería muy buena es utilizar <i>Ragas</i>, una herramienta de código abierto diseñada para evaluar sistemas <i>RAG</i>. En la carpeta de Apoyo dejo un notebook donde hago un análisis de las distintas métricas que ofrece, además de poder usarse de soporte para elaborar métricas propias.  
+</p>
+
+## 5. Llamadas a <i>LLMs</i> con <i>LiteLLM</i>  
+
+<p style="text-align: justify;">
+En el código de este trabajo hago las llamadas a los <i>LLMs</i> de los distintos proveedores de forma algo sucia; cada uno necesita una estructura diferente. <i>LiteLLM</i> es una librería de código abierto que actúa como una interfaz unificada para hacer estas llamadas, de forma que lo hace mucho más escalable (es más fácil añadir otros proveedores) y limpia. En la carpeta de Apoyo dejo un pequeño tutorial de cómo se haría.
+</p>
 
 # Líneas a futuro
+
+
 
 * Crear un agente que haga búsquedas y decida cuántas hacer, el top-n y cuándo parar (así se podría hacer un chatbot de verdad).
 * Usar structured outputs para las citas.
