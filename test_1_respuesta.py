@@ -7,11 +7,10 @@ from helpers.hacer_inferencia import get_LLM_response
 load_dotenv()
 
 ###### Parámetros
-modelo_respuesta="google/gemini-2.0-flash-thinking-exp:free"
+modelo_respuesta="google/gemini-2.5-pro-exp-03-25:free"
 ######
 
-
-APIkey=[os.getenv("LLMsAPIkey"),os.getenv("LLMsAPIkey_v2"),os.getenv("LLMsAPIkey_v3"),os.getenv("LLMsAPIkey_v4")]
+APIkey=[os.getenv("LLMsAPIkey"),os.getenv("LLMsAPIkey_v2"),os.getenv("LLMsAPIkey_v3"),os.getenv("LLMsAPIkey_v4"),os.getenv("LLMsAPIkey_v5"),os.getenv("LLMsAPIkey_v6"),os.getenv("LLMsAPIkey_v7")]
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
 ruta_input= os.path.join(script_dir, 'Output Test Automático.xlsx') # Path del input de **este** test (output del anterior)
@@ -19,6 +18,7 @@ ruta_output= os.path.join(script_dir, 'Output Test Automático.xlsx') # Path del
 
 for niter_APIkey in range(len(APIkey)):
   APIkey_OpenRouter=APIkey[niter_APIkey]
+  print(niter_APIkey+1)
 
   df=pd.read_excel(ruta_input)
 
@@ -37,6 +37,12 @@ for niter_APIkey in range(len(APIkey)):
       #respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,"llama-3.3-70b-versatile",user_prompt,system_prompt)
       print(respuesta_LLM)
       Respuesta_array[k]=respuesta_LLM
+
+      df["RESPUESTA"]=Respuesta_array
+      # Output del Test Automático
+      df.to_excel(ruta_output,index=False)
+      print(f'Archivo Excel guardado en: {ruta_output}')
+
       if respuesta_LLM=="ERROR":
         print("Rate limit alcanzado")
         break

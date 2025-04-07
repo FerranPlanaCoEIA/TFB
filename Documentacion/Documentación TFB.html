@@ -1,0 +1,764 @@
+#
+<h1 style="font-size: 50px;">
+<i>Chatbot</i> de la <i>Coppermind</i>, una <i>wikipedia</i> del
+<i>Cosmere</i>
+</h1>
+<h1 id="introducción">Introducción</h1>
+<h1 id="objetivos">Objetivos</h1>
+<h1 id="desarrollo">Desarrollo</h1>
+<h2 id="i.-creación-de-la-base-de-datos">I. Creación de la base de
+datos</h2>
+<p style="text-align: justify;">
+En primer lugar, he elegido la lista de entradas de la <i>wikipedia</i>
+que quiero utilizar como base de datos. Me he decantado por centrarme no
+en una saga en concreto, sino en los conceptos que son comunes a toda
+saga, a todo el universo del <i>Cosmere</i>.
+</p>
+<p style="text-align: justify;">
+Adjunto la <a
+href="https://drive.google.com/file/d/1-2jTNQljoHThvsco3jfIMhAOamoCOCqM/view?usp=sharing"><em>lista</em></a>
+con las urls de las entradas elegidas. He hecho un script que descarga
+el html a partir de la lista de urls. La descarga de cada entrada, al
+ser de una web, ha sido en formato html.<br />
+<span style="color: red;">(Script en Creación de base de datos-TFB.ipynb
+en local)</span>
+</p>
+<h3 id="i.ii.-tratamiento-de-los-htmls">I.II. Tratamiento de los
+htmls</h3>
+<p style="text-align: justify;">
+<p>Para optimizar el RAG he convertido los htmls en markdown. Además, he
+hecho cierto procesamiento para eliminar varias cosas:</p>
+<ul>
+<li>Eliminación de vínculos a otras entradas de la
+<i>wikipedia</i>.<br />
+</li>
+<li>Eliminación de citas.<br />
+</li>
+<li>Eliminación de imágenes.<br />
+</li>
+<li>Eliminación de la sección de notas en adelante (sección donde se
+ponen todas las referencias, no aporta valor).</li>
+</ul>
+<p style="text-align: justify;">
+De momento no voy a hacer más tratamiento al texto. Más adelante, con la
+ayuda del Test Automático, estudiaré si sería conveniente.
+</p>
+<span style="color: red;">(Script en html_to_markdown.ipynb en local,
+luego subir markdowns al drive)</span>
+</p>
+<h3 id="i.iii.-embeddings">I.III. Embeddings</h3>
+<p style="text-align: justify;">
+Una vez procesado el contenido de cada entrada, he dividido el texto
+completo de la base de datos en <i>chunks</i> con un <i>overlap</i> del
+20% (el tamaño del <i>chunk</i> está por ver, a estudiar con el Test
+Automático). He hecho los <i>embeddings</i> con el modelo
+<i>paraphrase-MiniLM-L6-v2</i>, un modelo de transformers que es
+relativamente compacto y eficiente cuya principal aplicaciión es la
+búsqueda semántica. He obtenido el modelo de <i>Hugging Face</i>.
+</p>
+<p style="text-align: justify;">
+El código divide el texto en <i>chunks</i>, hace los <i>embeddings</i>
+de cada <i>chunk</i> y guarda en <i>Google Drive</i> cada <i>chunk</i> y
+<i>embedding</i> con varios metadatos asociados: el número de
+<i>chunk</i> (entre todos los <i>chunks</i> del documento), el número de
+documento o <i>DOCID</i> (número de entrada de las totales) y su nombre
+(la <i>url</i> asociada, o algo similar).
+</p>
+<p><span style="color: red;">(Script en Creación de la base de
+datos.ipynb, Google Colab)</span></p>
+<h2 id="ii.-funcionamiento-del-rag">II. Funcionamiento del
+<i>RAG</i></h2>
+<p style="text-align: justify;">
+Un modelo <i>RAG</i> (<i>Retrieval-Augmented Generation</i>) consiste en
+dos partes principales: búsqueda semántica y generación de la respuesta.
+La búsqueda semántica consiste en hallar un cierto número de
+<i>chunks</i> de la base de datos que tienen mayor similitud con la
+pregunta del usuario. Una vez hallados, se le pide a un <i>LLM</i>
+componer una respuesta en base a esa pregunta y los chunks encontrados.
+</p>
+<h3 id="ii.i.-búsqueda-semántica">II.I. Búsqueda semántica</h3>
+<p style="text-align: justify;">
+Una vez hechos y guardados los <i>embeddings</i>, podemos acceder a
+ellos mediante <i>Google Drive</i>. Al hacer una pregunta, se hace el
+<i>embedding</i> de esa pregunta y se calcula la similitud entre esa
+pregunta y todos los <i>embeddings</i> de la base de datos. Otro de los
+hiperparámetros, junto con el tamaño de <i>chunk</i> y el
+<i>overlap</i>, es <i>top-n</i>, el número de chunks con más similitud
+que nos quedamos. El valor óptimo de este hiperparámetro también lo
+decidiremos con la ayuda del Test Automático.
+</p>
+<p style="text-align: justify;">
+Al hacer una pregunta, obtenemos los <i>chunks</i> con mayor similitud,
+el número de <i>chunk</i>, el <i>DOCID</i>, su nombre y la similitud
+entre ese <i>chunk</i> y la pregunta. Quedaría esto:
+</p>
+<blockquote>
+<p>Question: ¿Se puede leer algún libro del Cosmere sin haber leído
+otras sagas? The 3 chunks most similar to your question are: 1. DOCID:
+12 | Document Name: https://es.coppermind.net/wiki/Cosmere | Chunk
+number: 3 | Similarity: 0.6855<br />
+subyacentes, apareciendo algunos personajes en otros mundos ajenos al
+suyo. A pesar de las conexiones, Brandon ha dejado claro que uno no
+necesita ningún conocimiento del Cosmere en general para leer, entender,
+o disfrutar de los libros que tienen lugar en él. Las secuencia
+principal del Cosmere consistirá en la saga <em>Dragonsteel</em>”), la
+trilogía de <em>Elantris</em>, al menos cuatro eras de la saga
+<em>Nacidos de la bruma</em>”) y <em>El archivo de las tormentas</em>.
+La historia del Cosmere no incluye ningún libro que haga referencia a la
+Tierra, puesto que la tierra no está en el Cosmere. Para una lista
+completa</p>
+<ol start="2" type="1">
+<li><p>DOCID: 19 | Document Name:
+https://es.coppermind.net/wiki/Esquirla del Amanecer | Chunk number: 49
+| Similarity: 0.6744<br />
+no se refiera a Sigzil. En <em>Viento y verdad</em>, se confirmó que
+Hoid tuvo en su poder la Esquirla del Amanecer Existe durante los
+sucesos de los libros 1-5 de <em>El archivo de las tormentas</em>. ##
+Notes 1. ↑ a b c d e f g h i j k l m n o p q r s t u <em>Esquirla del
+Amanecer (novella)</em> capítulo 19”)Summary: Esquirla del Amanecer
+(novella)/Chapter_19/Chapter 19 (la página no existe)“)#/Chapter 19”) 2.
+↑ a b General Reddit 2022 — Arcanum - 2022-12-02Cite: Arcanum-15961# 3.
+↑ a b c Dawnshard Annotations Reddit Q&amp;A — Arcanum -</p></li>
+<li><p>DOCID: 24 | Document Name: https://es.coppermind.net/wiki/Hoid |
+Chunk number: 184 | Similarity: 0.6562<br />
+qué libro fue eso respondió <em>Brazales de Duelo”)</em>. * La misión de
+Hoid quizás sea: «hacer aquello que una vez fue». * Hoid no está
+impresionado por los Sangre Espectral. * Hoid detesta al Grupo, y los
+miembros de este último que le conocen también le detestan. * Aunque una
+vez le dijo a Kaladin (bastante acertado) que su vida comenzó como
+palabras en una página, este hecho no tenía la intención de romper la
+cuarta pared. * Hoid se ha travestido en el pasado, «muchas veces». *
+Antes de los eventos de <em>Palabras Radiantes</em>, a Hoid no le
+habían</p></li>
+</ol>
+</blockquote>
+<p>Además, se puede obtener una gráfica interesante: el histograma de la
+similitud entre cada <i>chunk</i> de la base de datos y la pregunta.</p>
+<p><img src="Images/distribucion-similitudes.png"
+data-align="center" /></p>
+<span style="color: red;">(Script en Creación de la base de datos.ipynb,
+Google Colab)</span>
+</p>
+<h2 id="ii.ii.-generación-de-la-respuesta">II.II. Generación de la
+respuesta</h2>
+<p style="text-align: justify;">
+Esos <i>chunks</i> con mayor similitud con la pregunta se le pasan,
+junto con la pregunta del usuario, a un <i>LLM</i>, pidiéndole que
+responda a la pregunta del usuario en base a los <i>chunks</i>
+encontrados.
+</p>
+<p style="text-align: justify;">
+El modelo seleecionado se decidirá más adelante a raíz de una serie de
+tests. Para esta y posteriores llamadas a <i>LLMs</i> se utilizarán
+varios proveedores que permiten hacer llamadas gratis vía API (ver <a
+href="https://drive.google.com/file/d/1F9DaZLL1n1gUDcGtaeGBuQ-fTJLYN5xE/view?usp=sharing"><em>LLMs_free_API_keys.ipynb</em></a>
+para más detalles).
+</p>
+<p>El <i>system prompt</i> es el siguiente:</p>
+<blockquote>
+<p>Eres un asistente virtual experto en responder preguntas. A
+continuación vas a recibir la pregunta de un usuario y el conocimiento
+que debes utilizar para responderla en el siguiente formato:</p>
+<p>Pregunta: Pregunta del usuario Conocimiento: Nombre del documento 1:
+contenido del documento 1 Nombre del documento 2: contenido del
+documento 2 … Nombre del documento N: contenido del documento N</p>
+<p>Responde como si fueras un chatbot de una wikipedia. Después de dar
+tu respuesta completa, di el nombre de los documentos en los que te has
+basado para elaborarla. Si te has basado dos veces en el mismo
+documento, no lo repitas al referenciarlo. Hazlo en este formato:</p>
+<p>Pon aquí tu respuesta [[Pon aquí únicamente el nombre del primer
+documento en el que te has basado]] [[Pon aquí únicamente el nombre del
+segundo documento en el que te has basado, siempre y cuando no hayas
+puesto el mismo nombre antes]] …</p>
+<p>No utilices conocimiento propio de tu entrenamiento, utiliza solo el
+que se te proporciona. Si parte del conocimiento que se te proporciona
+no te sirve para responder a la pregunta, no lo utilices. Cita
+únicamente los documentos en los que te has basado para elaborar la
+respuesta. Si con el conocimiento que se te proporciona no puedes
+responder a la pregunta, responde únicamente “Lo siento, no puedo
+responderte a esa pregunta” y no cites ningún documento.</p>
+</blockquote>
+<p>El <i>user prompt</i> es el siguiente:</p>
+<blockquote>
+<p>Pregunta: {Pregunta del usuario}</p>
+<p>Conocimiento:<br />
+{Nombre del documento del chunk}: {contenido del chunk}</p>
+</blockquote>
+<p style="text-align: justify;">
+Como se puede observar, no solo se le pide al <i>LLM</i> que componga la
+respuesta, sino que cite sus fuentes. De esta forma el usuario puede,
+con solo pinchar en el nombre de la referencia, acceder a dicha entrada
+de la <i>wikipedia</i> mediante la <i>url</i>.
+</p>
+<h2 id="iii.-test-automático">III. Test Automático</h2>
+<p style="text-align: justify;">
+Con el objetivo de poder valorar si los cambios tienen un impacto
+positivo en el modelo, he creado un test de regresión, al que llamaré
+Test Automático. Este test consiste en 137 preguntas de las que sé la
+respuesta correcta, a la que llamaré respuesta <i>best</i>, y la entrada
+(o entradas) de la wikipedia donde se responde a esa pregunta, que
+llamaré documento <i>best</i>. El test consistirá en 3 subtests:
+</p>
+<p style="text-align: justify;">
+<ul>
+<li>OK/KO RAG: Porcentaje de preguntas en las que el documento/s
+<i>best</i> se encuentra entre los encontrados por la búsqueda
+semántica.<br />
+</li>
+</ul>
+</p>
+<p style="text-align: justify;">
+<ul>
+<li>OK/KO <i>LLM</i>: Porcentaje de preguntas en las que el documento/s
+<i>best</i> se encuentra entre los elegidos por el <i>LLM</i> para
+redactar la respuesta.<br />
+</li>
+</ul>
+</p>
+<p style="text-align: justify;">
+<ul>
+<li>OK/KO <i>LLM as a judge</i>: Porcentaje de preguntas en las que un
+segundo <i>LLM</i> valora que la respuesta del primer modelo se ajusta a
+la respuesta <i>best</i>. El LLM elegido para el test de <i>LLM as a
+judge</i> es el <i>Llama 3.3 70B versatile</i>, ya que es un <i>LLM</i>
+grande, la útima versión de los modelos <i>LLama</i> y apto para gran
+variedad de tareas.<br />
+</li>
+</ul>
+</p>
+<p><span style="color: red;">(Script en Test Automático.ipynb, Google
+Colab)</span></p>
+<p>El <i>system prompt</i> es el siguiente:</p>
+<blockquote>
+<p>Vas a recibir una pregunta de un usuario (Pregunta), la respuesta
+correcta a esta pregunta (Respuesta_Best) y una respuesta generada
+(Respuesta_Generada). Tus objetivos son los siguientes: 1. Determinar si
+la Respuesta_Generada responde a la Pregunta. 2. Determinar si la
+Respuesta_Generada concuerda con la Respuesta_Best y no la contradice.
+Tienes que hacer una valoración en detalle y razonando sobre tu
+valoración. Si la Respuesta_Generada no responde a la Pregunta, valorar
+como KO. Si la Respuesta_Generada concuerda con la Respuesta_Best y no
+la contradice, valorarla como OK. Si la Respuesta_Generada no concuerda
+con la Respuesta_Best y la contradice, valorarla como KO. No tener en
+cuenta posibles detalles adicionales que puedan estar incluidos en la
+Respuesta_Generada, siempre y cuando no contradigan la
+Respuesta_Best.</p>
+<p>Una vez hayas hecho tu razonamiento, cúentalo, y al final pon tu
+valoración en este formato: [[Valoración: OK/KO]]</p>
+</blockquote>
+<p>El <i>user prompt</i> es el siguiente:</p>
+<blockquote>
+<p>Pregunta:<br />
+{Pregunta del usuario}</p>
+<p>Respuesta_Best:<br />
+{Respuesta marcada como correcta}</p>
+<p>Respuesta_Generada:<br />
+{Respuesta generada por el <i>LLM</i>}</p>
+</blockquote>
+<p><span style="color: red;">EXPLICAR, DECIR LOS % OK, LLM AS A JUDGE?,
+ENLACE AL GS Y A UN EJEMPLO DEL GS EJECUTADO, ENLACE A EXCEL DE
+RESULTADOS, ETC. </span></p>
+<p style="text-align: justify;">
+Las preguntas, documento/s <i>best</i> y respuestas <i>best</i> se
+pueden ver aquí: <a
+href="https://docs.google.com/spreadsheets/d/1gs--ymPUeTYjbyf6AwcPHpowz6-6ehQb/edit?usp=sharing&amp;ouid=117815217117454739708&amp;rtpof=true&amp;sd=true"><em>Input
+Test Automático.xlsx</em></a>.
+</p>
+<h3 id="iii.i.-chunk-size-overlap-y-top-n">III.I. <i>chunk size</i>,
+<i>overlap</i> y <i>top n</i></h3>
+<p style="text-align: justify;">
+El primer objetivo de este test es determinar el tamaño óptimo de los
+<i>chunks</i> de la base de datos. Para eso se ha ejecutado el test con
+varios <i>chunk size</i> distintos, así como para varios <i>top n</i>
+(el número de <i>chunks</i> pasados al <i>LLM</i> para redactar la
+respuesta). En este caso se ha fijado el <i>LLM</i> de elaboración de la
+respuesta y varios de sus parámetros. El <i>LLM</i> ha sido <i>Google
+Gemini 2.0 pro experimental</i>, aunque más adelante se comaprarán
+varios modelos y se eligirá el mejor. La temperatura se ha fijado a 0
+para aumentar la reproducibilidad de los tests y reducir su
+variabilidad. Además, se ha fijado la <i>repetition penalty</i> a 0 para
+intentar producir respuestas concisas. Por último, el <i>chunk
+overlap</i> se ha fijado por defecto al 20%.
+</p>
+<p style="text-align: justify;">
+Se han hecho estas pruebas para un <i>chunk size</i> de 50, 75, 100 y
+200 tokens, y <i>top n</i> de 3, 5, 10 y 15 <i>chunks</i>. El resultado
+en detalle de las pruebas puede verse aquí: <a
+href="https://docs.google.com/spreadsheets/d/1rY1Kpd-hpIVb6air6aGdrMKY75ROrlt2/edit?usp=sharing&amp;ouid=117815217117454739708&amp;rtpof=true&amp;sd=true"><em>Chunk
+sze-overlap-topn.xlsx</em></a>.
+</p>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 13%" />
+<col style="width: 15%" />
+<col style="width: 22%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Chunk_size</th>
+<th>top_n</th>
+<th>OK RAG</th>
+<th>OK FUENTES</th>
+<th>OK RESPUESTA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>50</td>
+<td>3</td>
+<td>68,38%</td>
+<td>55,15%</td>
+<td>47,06%</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>5</td>
+<td>78,68%</td>
+<td>61,76%</td>
+<td>55,15%</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>10</td>
+<td>87,50%</td>
+<td>72,79%</td>
+<td>66,18%</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>15</td>
+<td>90,44%</td>
+<td>74,26%</td>
+<td>69,85%</td>
+</tr>
+<tr class="odd">
+<td>75</td>
+<td>3</td>
+<td>63,97%</td>
+<td>48,53%</td>
+<td>42,22%</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>5</td>
+<td>72,79%</td>
+<td>55,88%</td>
+<td>55,88%</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>10</td>
+<td>83,09%</td>
+<td>63,97%</td>
+<td>63,97%</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>15</td>
+<td>86,76%</td>
+<td>69,12%</td>
+<td>69,85%</td>
+</tr>
+<tr class="odd">
+<td><strong>100</strong></td>
+<td>3</td>
+<td>66,18%</td>
+<td>51,47%</td>
+<td>44,85%</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>5</td>
+<td>75,74%</td>
+<td>60,29%</td>
+<td>52,94%</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><strong>10</strong></td>
+<td><strong>84,56%</strong></td>
+<td><strong>66,91%</strong></td>
+<td><strong>66,18%</strong></td>
+</tr>
+<tr class="even">
+<td></td>
+<td>15</td>
+<td>88,24%</td>
+<td>69,85%</td>
+<td>72,79%</td>
+</tr>
+<tr class="odd">
+<td>200</td>
+<td>3</td>
+<td>61,03%</td>
+<td>47,06%</td>
+<td>44,12%</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>5</td>
+<td>65,44%</td>
+<td>53,68%</td>
+<td>52,21%</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>10</td>
+<td>74,26%</td>
+<td>53,68%</td>
+<td>56,62%</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>15</td>
+<td>79,41%</td>
+<td>58,09%</td>
+<td>59,56%</td>
+</tr>
+</tbody>
+</table>
+<p><img src="Images/chunksize-topn.jpg" data-align="center" /></p>
+<p style="text-align: justify;">
+A raíz de estos resultados se utilizará un <i>chunk size</i> de 100
+<i>tokens</i> (por tanto, un <i>chunk overlap</i> de 20 <i>tokens</i>) y
+un <i>top n</i> de 10 <i>chunks</i>. Se escoge esto por varias razones.
+En primer lugar, es el que mayor porcentaje de OK arroja en OK de la
+respuesta para <i>top n</i> de 10, junto a un <i>chunk size</i> de 50.
+Se elige sobre este porque, para resultados iguales, un <i>chunk
+size</i> de 100 ofrece más contexto. No se escoge <i>chunk size</i> de
+100 y <i>top n</i> de 15 porque la mejora en esta métrica no es
+demasiada. Además, hay que tener en cuenta el tiempo de respuesta del
+modelo, una métrica que en este caso no se ha evaludao, pero que es
+fundamental, ya que esta aplicación de IA es un <i>chatbot</i>. En
+resumen, los parámetros elegidos han sido <b><i>chunk size</i> = 100
+<i>tokens</i>, <i>chunk overlap</i> = 20 <i>tokens</i>, <i>top n</i> =
+10 <i>chunks</i></b>.
+</p>
+<p style="text-align: justify;">
+Por otro lado, como más adelante se va a analizar el <i>LLM</i> a
+utilizar para responder a las preguntas, así como su temperatura, cabría
+preguntarse si este análisis fijando el <i>LLM</i> es válido para otros.
+La realidad es que no, pero se ha hecho así para reducir el número de
+pruebas a hacer. Aunque los resultados del análisis del <i>chunk
+size</i>, <i>overlap</i> y <i>top n</i> probablemente cambien de un
+<i>LLM</i> a otro, se ha supuesto que no serán cambios significativos.
+</p>
+<h3 id="iii.ii.-modelo-de-embeddings">III.II. Modelo de
+<i>embeddings</i></h3>
+<p style="text-align: justify;">
+En el momento que se hicieron los tests III.I pensaba que el modelo de
+<i>embeddings</i> que estaba utilizando, <i>paraphrase-MiniLM-L6-v2</i>,
+era el mejor. Sin embargo, en una de las clases me hicieron saber que
+este modelo no está entrenado en español, por lo que es fundamental
+encontrar uno que funcione mejor entrenado específicamente en español.
+</p>
+<p style="text-align: justify;">
+Lo ideal sería hacer primero este test y después el III.I, ya que es más
+determinante el modelo de <i>embeddings</i> utilizado. Sin embargo, como
+el test III.I consume mucho tiempo, asumiremos el error producido por
+hacerlo en este orden.
+</p>
+<p>Los modelos de <i>embeddings</i> que vamos a comparar son los
+siguientes:</p>
+<ul>
+<li><i>paraphrase-MiniLM-L6-v2</i> (as-is, entrenado solo en
+inglés)</li>
+<li><i>paraphrase-multilingual-MiniLM-L12-v2</i><br />
+</li>
+<li><i>paraphrase-multilingual-mpnet-base-v2</i></li>
+<li><i>distiluse-base-multilingual-cased-v2</i></li>
+<li><i>stsb-xlm-r-multilingual</i></li>
+<li><i>Shaharyar6/finetuned_sentence_similarity_spanish</i></li>
+</ul>
+<p style="text-align: justify;">
+Por desgracia, y debido a las limitaciones de tener que usar llamadas
+gratis via API a <i>LLMs</i> ofrecidos por distintos proveedores, el
+<i>LLM</i> de elaboración de la respuesta que usé en el test III.I,
+<i>Google: Gemini Pro 2.0 Experimental (free)</i>, ya no está
+disponible. Debido a esto voy a tener que utilizar otro, <i>Google:
+Gemini 2.0 Flash Thinking Experimental 01-21 (free)</i>. Aún así, esto
+no invalida las conclusiones de este test.
+</p>
+<p>Los resultados de este test son los siguientes:</p>
+<table>
+<colgroup>
+<col style="width: 61%" />
+<col style="width: 9%" />
+<col style="width: 13%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Modelo de embeddings</th>
+<th>OK RAG</th>
+<th>OK FUENTES</th>
+<th>OK RESPUESTA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>paraphrase-MiniLM-L6-v2 (inglés)</td>
+<td>84,56%</td>
+<td>66,18%</td>
+<td>61,03%</td>
+</tr>
+<tr class="even">
+<td>paraphrase-multilingual-MiniLM-L12-v2</td>
+<td>88,97%</td>
+<td>77,21%</td>
+<td>80,74%</td>
+</tr>
+<tr class="odd">
+<td>paraphrase-multilingual-mpnet-base-v2</td>
+<td>89,71%</td>
+<td>76,47%</td>
+<td>78,68%</td>
+</tr>
+<tr class="even">
+<td><strong>distiluse-base-multilingual-cased-v2</strong></td>
+<td><strong>88,24%</strong></td>
+<td><strong>77,94%</strong></td>
+<td><strong>82,35%</strong></td>
+</tr>
+<tr class="odd">
+<td>stsb-xlm-r-multilingual</td>
+<td>67,65%</td>
+<td>47,06%</td>
+<td>56,62%</td>
+</tr>
+<tr class="even">
+<td>Shaharyar6/finetuned_sentence_similarity_spanish</td>
+<td>92,65%</td>
+<td>82,35%</td>
+<td>83,82%</td>
+</tr>
+</tbody>
+</table>
+<p><img src="Images/modelo-embeddings.jpg" data-align="center" /></p>
+<p style="text-align: justify;">
+Podemos observar que, aunque OK RAG del modelo entrenado en inglés es
+similar al resto (entrenados en español), en las otras dos métricas es
+muy inferior. Es decir, los modelos de <i>embeddings</i> entrenados en
+español están encontrando chunks mucho más útiles para elaborar la
+respuesta.
+</p>
+<p style="text-align: justify;">
+Que haya más OK RESPUESTA que OK FUENTES se explica por la naturaleza de
+la base de datos: como es una <i>wikipedia</i> tiene mucha información
+redundante, así que es probable que para alguna pregunta haya más
+documento/s <i>best</i> de los que he puesto en el test automático.
+</p>
+<p style="text-align: justify;">
+Sin embargo, lo que más llama la atención son los pésimos resultados del
+modelo <i>stsb-xlm-r-multilingual</i>. EXPLICAR ESTO
+</p>
+<p style="text-align: justify;">
+Como los resultados de los modelos entrenados en español (quitando el
+mencionado anteriormente) son similares, vamos a elegir basándonos
+también en el tiempo de inferencia de cada modelo. Aunque no está
+implementado el cálculo del tiempo de ejecución de cada pregunta del
+test, podemos estimar el tiempo de otra forma. Como el número de
+<i>chunks</i> y <i>tokens</i> de la base de datos es fijo, podemos medir
+el tiempo que tarda cada modelo en crear el índice. Esto nos dará una
+idea de qué modelos tardan menos en hacer una inferencia.
+</p>
+<table>
+<colgroup>
+<col style="width: 61%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Modelo de embeddings</th>
+<th>Tiempo de creación del índice (s)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>paraphrase-MiniLM-L6-v2</td>
+<td>85</td>
+</tr>
+<tr class="even">
+<td>paraphrase-multilingual-MiniLM-L12-v2</td>
+<td>154</td>
+</tr>
+<tr class="odd">
+<td>paraphrase-multilingual-mpnet-base-v2</td>
+<td>531</td>
+</tr>
+<tr class="even">
+<td><strong>distiluse-base-multilingual-cased-v2</strong></td>
+<td><strong>260</strong></td>
+</tr>
+<tr class="odd">
+<td>stsb-xlm-r-multilingual</td>
+<td>365</td>
+</tr>
+<tr class="even">
+<td>Shaharyar6/finetuned_sentence_similarity_spanish</td>
+<td>447</td>
+</tr>
+</tbody>
+</table>
+<p><img src="Images/modelo-embeddings-tiempos.jpg"
+data-align="center" /></p>
+<p style="text-align: justify;">
+Con estos resultados, el modelo de <i>embeddings</i> que vamos a
+utilizar es <i>distiluse-base-multilingual-cased-v2</i>, el segundo que
+mejor OK RESPUESTA da y el tercero más rápido, además del más rápido de
+los modelos por encima del 70% de OK RESPUESTA.
+</p>
+<h3 id="iii.iii.-llm-de-generación-de-la-respuesta">III.III. <i>LLM</i>
+de generación de la respuesta</h3>
+<p style="text-align: justify;">
+A continuación, se evaluará qué <i>LLM</i> se utilizará para generar la
+respuesta a partir del conocimiento encontrado.
+</p>
+<p>Los modelos que vamos a evaluar son:</p>
+<ul>
+<li>google/gemini-2.0-flash-thinking-exp:free<br />
+</li>
+<li>google/gemini-2.5-pro-exp-03-25:free<br />
+</li>
+<li>meta-llama/llama-3.3-70b-instruct:free<br />
+</li>
+<li>meta-llama/llama-3.2-11b-vision-instruct:free</li>
+<li>deepseek/deepseek-v3-base:free</li>
+<li>deepseek/deepseek-r1:free</li>
+<li>qwen/qwen-2.5-72b-instruct:free<br />
+</li>
+<li>microsoft/phi-3-medium-128k-instruct:free<br />
+</li>
+<li>mistralai/mistral-7b-instruct:free<br />
+</li>
+<li>gpt-4o-mini</li>
+</ul>
+<h1 id="puesta-en-producción">Puesta en producción</h1>
+<h1 id="posibles-mejoras">Posibles mejoras</h1>
+<p style="text-align: justify;">
+En esta sección voy a detallar las posibles mejoras que hacer a este
+trabajo. Son ideas que han salido durante la realización del mismo o
+gracias a las clases recibidas, que no se alejan demasiado de los
+objetivos del trabajo, pero que o bien son demasiado ambiciosas o bien
+no ha dado tiempo a hacerlas.
+</p>
+<h2 id="llms-de-pago">1. <i>LLms</i> de pago</h2>
+<p style="text-align: justify;">
+Si ha habido algo que haya lastrado este trabajo es la limitación que
+teníamos de utilizar llamdas gratis via <i>API</i> a <i>LLMs</i>
+ofrecidos por distintos proveedores. Esto ha hecho que estemos
+restringidos en cuanto a los modelos que utilizar, tengamos que crear
+varias cuentas por proveedor para poder sortear esos <i>rate limit</i>,
+no podamos automatizar del todo los test automáticos, etc. Además, los
+mejores <i>LLMs</i> no se ofrecen gratis, por lo que contratar alguno
+puede aumentar también el desempeño del <i>RAG</i>, además de
+probablemente reducir los tiempos de inferencia.
+</p>
+<p style="text-align: justify;">
+Usar <i>LLMs</i> de pago me permitiría además aplicar <i>Structured
+Outputs</i> para que en la elaboración de la respuesta y el <i>LLM as a
+judge</i> den, respectivamente, las referencias separadas de la
+respuesta y la valoración del razonamiento.
+</p>
+<p style="text-align: justify;">
+Por otro lado, utilizar el modelo de <i>embeddings</i> de <i>OpenAI</i>
+mejoraría significativamente los resultados de la parte del
+<i>restrieval</i>, ya que es un modelo grande pero que no necesita ser
+alojado en local, por lo que además es rápido. En clases y prácticas
+anteriores hemos discutido y comprobado la mejora notable por utilizar
+este modelo.
+</p>
+<h2 id="prompts">2. <i>Prompts</i></h2>
+<p style="text-align: justify;">
+En cuanto a los <i>prompts</i>, el prompt que utilizo en este trabajo,
+tanto para la elaboración de la respuesta como para la parte del <i>LLM
+as a judge</i> del test automático, son los que han funcionado para el
+modelo <i>Google: Gemini Pro 2.0 Experimental (free)</i>. Que
+funcionaran bien con ese modelo no implica que funcionen también con el
+resto, por lo que una posible mejora podría ser encontrar el
+<i>prompt</i> ideal para cada <i>LLM</i> utilizado. Además, se podría
+haber aplicado la técnica <i>Few-Shot Prompting</i> para incluir algún
+ejemplo de cómo elaborar la respuesta y referenciar los documentos
+adecuados.
+</p>
+<p style="text-align: justify;">
+Otra cosa que me gustaría haber hecho mejor es la gestión de los
+prompts. En el repositorio del código están incluidas en un
+<i>script</i> de <i>python</i>, pero deben poder guardarse y tratar las
+versiones con alguna herramienta externa que sea más idónea.
+</p>
+<h2 id="test-automático">3. Test Automático</h2>
+<p style="text-align: justify;">
+Una mejora clara en esta parte es incluir el tiempo de inferencia medio
+de cada test. Esta es una métrica funcamental para soluciones tipo
+<i>RAG</i>. Esta es además una métrica que, de poner esta solución en
+producción, mejoraría mucho, ya que los <i>LLMs</i> y modelos de
+<i>embeddings</i> de pago son mucho más rápidos.
+</p>
+<p style="text-align: justify;">
+Por otro lado, el test puede no ser todo lo representativo que pretende,
+ya que el número de preguntas de cada documento no lo he decidido de
+forma rigurosa. Podría hacerse que el porcentaje de preguntas sobre cada
+documento dependa de la longitud de cada documento de la base de datos.
+Además, por supuesto, las preguntas pueden estar hechas de forma
+sesgada, ya que he sido yo mismo el que las ha diseñado. Una manera de
+hacerlo menos sesgado es quizás pasarle fragmentos del documento a un
+<i>LLM</i> y pedirle que elaborara una pregunta que fuera respondida con
+algo de ese fragmento.
+</p>
+<p style="text-align: justify;">
+A su vez, los resultados de cada test se han enviado a un <i>Excel</i>,
+cosa que no es ni muy limpia ni muy escalable. Lo que podría hacerse es
+enviar los resultados y parámetros de cada test a <i>MLflow</i>.
+</p>
+<h2 id="métricas-de-ragas-y-groundedness-de-microsoft">4. Métricas de
+<i>Ragas</i> y <i>Groundedness</i> de <i>Microsoft</i></h2>
+<p style="text-align: justify;">
+Una mejora que sería muy buena es utilizar <i>Ragas</i>, una herramienta
+de código abierto diseñada para evaluar sistemas <i>RAG</i>. En la
+carpeta de Apoyo dejo un notebook donde hago un análisis de las
+distintas métricas que ofrece, además de poder usarse de soporte para
+elaborar métricas propias.
+</p>
+<p style="text-align: justify;">
+Además de estas métricas, podría calcularse la métrica
+<i>Groundedness</i> de <i>Microsoft</i>. Esta métrica mide lo desviada
+que está la respuesta de un sistema <i>RAG</i> respecto del contexto que
+se le pasa. Es al fin y al cabo una forma de medir las alucinaciones, o
+lo que añade el <i>LLM</i> que elabora la respuesta al contexto
+recibido. Esta es una métrica que se calcula via <i>API</i> y en la que
+no se utiliza un <i>LLM</i> para calcularla, por lo que es muy rápida
+(unos 300 ms). Es por esto que podría incluso utilizarse para avisar al
+usuario de lo fiable que puede ser la respuesta, pintándola por ejemplo
+en una escala de color del rojo al verde.
+</p>
+<h2 id="llamadas-a-llms-con-litellm">5. Llamadas a <i>LLMs</i> con
+<i>LiteLLM</i></h2>
+<p style="text-align: justify;">
+En el código de este trabajo hago las llamadas a los <i>LLMs</i> de los
+distintos proveedores de forma algo sucia; cada uno necesita una
+estructura diferente. <i>LiteLLM</i> es una librería de código abierto
+que actúa como una interfaz unificada para hacer estas llamadas, de
+forma que lo hace mucho más escalable (es más fácil añadir otros
+proveedores) y limpia. En la carpeta de Apoyo dejo un pequeño tutorial
+de cómo se haría.
+</p>
+<h1 id="líneas-a-futuro">Líneas a futuro</h1>
+<ul>
+<li>Crear un agente que haga búsquedas y decida cuántas hacer, el top-n
+y cuándo parar (así se podría hacer un chatbot de verdad).</li>
+<li>Usar structured outputs para las citas.</li>
+<li>Creación de una interfaz de chat estilo <i>chatgpt</i>.<br />
+</li>
+<li>Detector de <i>chit-chat</i>.<br />
+</li>
+<li>Implementación real del <em>chat</em> (que no sea únicamente
+pregunta-respuesta aisladas, que recoja las preguntas anteriores de ese
+chat).<br />
+</li>
+<li><i>RAG-fusion</i>: creación de preguntas (para querys extra) de
+apoyo mediante un <i>LLM</i>.</li>
+</ul>
+<h1 id="referencias">Referencias</h1>

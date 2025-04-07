@@ -227,18 +227,74 @@ Los modelos de <i>embeddings</i> que vamos a comparar son los siguientes:
 * <i>paraphrase-multilingual-mpnet-base-v2</i> 
 * <i>distiluse-base-multilingual-cased-v2</i> 
 * <i>stsb-xlm-r-multilingual</i> 
-* <i>finetuned_sentence_similarity_spanish</i> 
+* <i>Shaharyar6/finetuned_sentence_similarity_spanish</i> 
 
 <p style="text-align: justify;">
 Por desgracia, y debido a las limitaciones de tener que usar llamadas gratis via API a <i>LLMs</i> ofrecidos por distintos proveedores, el <i>LLM</i> de elaboración de la respuesta que usé en el test III.I, <i>Google: Gemini Pro 2.0 Experimental (free)</i>, ya no está disponible. Debido a esto voy a tener que utilizar otro, <i>Google: Gemini 2.0 Flash Thinking Experimental 01-21 (free)</i>. Aún así, esto no invalida las conclusiones de este test.
+</p>  
+
+Los resultados de este test son los siguientes:  
+
+| Modelo de embeddings                                    | OK RAG  | OK FUENTES | OK RESPUESTA |
+|---------------------------------------------------------|---------|------------|--------------|
+| paraphrase-MiniLM-L6-v2 (inglés)                                | 84,56%  | 66,18%     | 61,03%       |
+| paraphrase-multilingual-MiniLM-L12-v2                 | 88,97%  | 77,21%     | 80,74%       |
+| paraphrase-multilingual-mpnet-base-v2                 | 89,71%  | 76,47%     | 78,68%       |
+| **distiluse-base-multilingual-cased-v2**                  | **88,24%**  | **77,94%**     | **82,35%**       |
+| stsb-xlm-r-multilingual                               | 67,65%  | 47,06%     | 56,62%       |
+| Shaharyar6/finetuned_sentence_similarity_spanish      | 92,65%  | 82,35%     | 83,82%       |
+
+![](Images/modelo-embeddings.jpg){ width=50%, align=center }
+
+<p style="text-align: justify;">
+Podemos observar que, aunque OK RAG del modelo entrenado en inglés es similar al resto (entrenados en español), en las otras dos métricas es muy inferior. Es decir, los modelos de <i>embeddings</i> entrenados en español están encontrando chunks mucho más útiles para elaborar la respuesta.
+</p>
+
+<p style="text-align: justify;">
+Que haya más OK RESPUESTA que OK FUENTES se explica por la naturaleza de la base de datos: como es una <i>wikipedia</i> tiene mucha información redundante, así que es probable que para alguna pregunta haya más documento/s <i>best</i> de los que he puesto en el test automático.  
+</p>
+
+<p style="text-align: justify;">
+Sin embargo, lo que más llama la atención son los pésimos resultados del modelo <i>stsb-xlm-r-multilingual</i>.
+EXPLICAR ESTO
+</p>
+
+<p style="text-align: justify;">
+Como los resultados de los modelos entrenados en español (quitando el mencionado anteriormente) son similares, vamos a elegir basándonos también en el tiempo de inferencia de cada modelo. Aunque no está implementado el cálculo del tiempo de ejecución de cada pregunta del test, podemos estimar el tiempo de otra forma. Como el número de <i>chunks</i> y <i>tokens</i> de la base de datos es fijo, podemos medir el tiempo que tarda cada modelo en crear el índice. Esto nos dará una idea de qué modelos tardan menos en hacer una inferencia.  
+</p>
+
+| Modelo de embeddings                                    | Tiempo de creación del índice (s) |
+|---------------------------------------------------------|-----------------------------------|
+| paraphrase-MiniLM-L6-v2                                | 85                                |
+| paraphrase-multilingual-MiniLM-L12-v2                 | 154                               |
+| paraphrase-multilingual-mpnet-base-v2                 | 531                               |
+| **distiluse-base-multilingual-cased-v2**                  | **260**                               |
+| stsb-xlm-r-multilingual                               | 365                               |
+| Shaharyar6/finetuned_sentence_similarity_spanish      | 447                               |
+
+![](Images/modelo-embeddings-tiempos.jpg){ width=50%, align=center }
+
+<p style="text-align: justify;">
+Con estos resultados, el modelo de <i>embeddings</i> que vamos a utilizar es <i>distiluse-base-multilingual-cased-v2</i>, el segundo que mejor OK RESPUESTA da y el tercero más rápido, además del más rápido de los modelos por encima del 70% de OK RESPUESTA.
 </p>
 
 ### III.III. <i>LLM</i> de generación de la respuesta  
 
 <p style="text-align: justify;">
-A continuación, se evaluará qué <i>LLM</i> se utilizará para generar la respuesta a partir del conocimiento encontrado. Para ello, se evaluarán las tres métricas anteriores (OK RAG, OK FUENTES y OK RESPUESTA), además del tiempo de respuesta de cada modelo.
+A continuación, se evaluará qué <i>LLM</i> se utilizará para generar la respuesta a partir del conocimiento encontrado.
 </p>
 
+Los modelos que vamos a evaluar son:  
+
+* google/gemini-2.0-flash-thinking-exp:free  
+* google/gemini-2.5-pro-exp-03-25:free  
+* meta-llama/llama-3.3-70b-instruct:free  
+* deepseek/deepseek-chat:free (V3)
+* deepseek/deepseek-r1-zero:free
+* qwen/qwen-2.5-72b-instruct:free  
+* microsoft/phi-3-medium-128k-instruct:free  
+* mistralai/mistral-7b-instruct:free  
+* gpt-4o-mini
 
 
 
@@ -259,6 +315,10 @@ En esta sección voy a detallar las posibles mejoras que hacer a este trabajo. S
 
 <p style="text-align: justify;">
 Si ha habido algo que haya lastrado este trabajo es la limitación que teníamos de utilizar llamdas gratis via <i>API</i> a <i>LLMs</i> ofrecidos por distintos proveedores. Esto ha hecho que estemos restringidos en cuanto a los modelos que utilizar, tengamos que crear varias cuentas por proveedor para poder sortear esos <i>rate limit</i>, no podamos automatizar del todo los test automáticos, etc. Además, los mejores <i>LLMs</i> no se ofrecen gratis, por lo que contratar alguno puede aumentar también el desempeño del <i>RAG</i>, además de probablemente reducir los tiempos de inferencia.
+</p>  
+
+<p style="text-align: justify;">
+Usar <i>LLMs</i> de pago me permitiría además aplicar <i>Structured Outputs</i> para que en la elaboración de la respuesta y el <i>LLM as a judge</i> den, respectivamente, las referencias separadas de la respuesta y la valoración del razonamiento.
 </p>
 
 <p style="text-align: justify;">
@@ -282,17 +342,21 @@ Una mejora clara en esta parte es incluir el tiempo de inferencia medio de cada 
 </p>
 
 <p style="text-align: justify;">
-Por otro lado, el test puede no ser todo lo representativo que pretende, ya que el número de preguntas de cada documento no lo he decidido de forma rigurosa. Podría hacerse que el porcentaje de preguntas sobre cada documento dependa de la longitud de cada documento de la base de datos.  
+Por otro lado, el test puede no ser todo lo representativo que pretende, ya que el número de preguntas de cada documento no lo he decidido de forma rigurosa. Podría hacerse que el porcentaje de preguntas sobre cada documento dependa de la longitud de cada documento de la base de datos. Además, por supuesto, las preguntas pueden estar hechas de forma sesgada, ya que he sido yo mismo el que las ha diseñado. Una manera de hacerlo menos sesgado es quizás pasarle fragmentos del documento a un <i>LLM</i> y pedirle que elaborara una pregunta que fuera respondida con algo de ese fragmento.  
 </p>
 
 <p style="text-align: justify;">
 A su vez, los resultados de cada test se han enviado a un <i>Excel</i>, cosa que no es ni muy limpia ni muy escalable. Lo que podría hacerse es enviar los resultados y parámetros de cada test a <i>MLflow</i>.
 </p>
 
-## 4. Métricas de <i>Ragas</i> 
+## 4. Métricas de <i>Ragas</i> y <i>Groundedness</i> de <i>Microsoft</i> 
 
 <p style="text-align: justify;">
 Una mejora que sería muy buena es utilizar <i>Ragas</i>, una herramienta de código abierto diseñada para evaluar sistemas <i>RAG</i>. En la carpeta de Apoyo dejo un notebook donde hago un análisis de las distintas métricas que ofrece, además de poder usarse de soporte para elaborar métricas propias.  
+</p>  
+
+<p style="text-align: justify;">
+Además de estas métricas, podría calcularse la métrica <i>Groundedness</i> de <i>Microsoft</i>. Esta métrica mide lo desviada que está la respuesta de un sistema <i>RAG</i> respecto del contexto que se le pasa. Es al fin y al cabo una forma de medir las alucinaciones, o lo que añade el <i>LLM</i> que elabora la respuesta al contexto recibido. Esta es una métrica que se calcula via <i>API</i> y en la que no se utiliza un <i>LLM</i> para calcularla, por lo que es muy rápida (unos 300 ms). Es por esto que podría incluso utilizarse para avisar al usuario de lo fiable que puede ser la respuesta, pintándola por ejemplo en una escala de color del rojo al verde.
 </p>
 
 ## 5. Llamadas a <i>LLMs</i> con <i>LiteLLM</i>  
@@ -308,8 +372,10 @@ En el código de este trabajo hago las llamadas a los <i>LLMs</i> de los distint
 * Crear un agente que haga búsquedas y decida cuántas hacer, el top-n y cuándo parar (así se podría hacer un chatbot de verdad).
 * Usar structured outputs para las citas.
 * Creación de una interfaz de chat estilo <i>chatgpt</i>.  
-* Aplicación de un filtro de similitud. Por ejemplo, si no hay ningún chunk con similitud mayor que 0.6, responder "Lo siento, no tengo datos suficientes para responder a tu pregunta".
 * Detector de <i>chit-chat</i>.  
 * Implementación real del *chat* (que no sea únicamente pregunta-respuesta aisladas, que recoja las preguntas anteriores de ese chat).  
-* <i>RAG-fusion</i>: creación de preguntas de apoyo mediante un <i>LLM</i>.  
-* Implementación de <i>Groundedness</i> para medir alucinaciones y cómo de desviada está una respuesta de los <i>chunks</i> encontrados. Muestra al usuario para prevenir?
+* <i>RAG-fusion</i>: creación de preguntas (para querys extra) de apoyo mediante un <i>LLM</i>.  
+
+# Referencias 
+
+

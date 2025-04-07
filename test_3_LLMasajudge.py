@@ -17,8 +17,8 @@ ruta_output= os.path.join(script_dir, 'Output Test Automático.xlsx') # Path del
 
 df=pd.read_excel(ruta_input)
 
-APIkey_Groq=os.getenv("LLMsAPIkey_Groq")
-#APIkey_Groq=os.getenv("LLMsAPIkey_Groq_v2")
+#APIkey_Groq=os.getenv("LLMsAPIkey_Groq")
+APIkey_Groq=os.getenv("LLMsAPIkey_Groq_v2")
 #APIkey_Groq=os.getenv("LLMsAPIkey_Groq_v3")
 
 #APIkey_OpenRouter=os.getenv("LLMsAPIkey")
