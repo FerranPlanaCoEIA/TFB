@@ -8,5 +8,4 @@ pickleshare==0.7.5
 jsonpickle==4.0.2
 dotenv
 requests==2.32.3
-groq==0.20.0
-
+litellm==1.65.4.post1
