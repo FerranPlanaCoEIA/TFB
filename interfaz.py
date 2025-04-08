@@ -40,4 +40,4 @@ texto = st.text_input("Escribe tu pregunta:")
 if st.button("Enviar"):
     # Convertir el texto a minúsculas y mostrarlo
     texto_minuscula = inferencia_interfaz(texto)
-    st.write(f"Texto en minúsculas: {texto_minuscula}")
+    st.write(f"{texto_minuscula}")

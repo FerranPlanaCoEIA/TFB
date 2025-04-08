@@ -10,7 +10,8 @@ load_dotenv()
 def inferencia_interfaz(question):
 
     ###### Parámetros
-    top_n=3
+    top_n=10
+    model_response="google/gemini-2.0-flash-thinking-exp:free"
     #question = "¿Es necesario saber mucho del Cosmere para poder leer alguno de los libros?"
     ######
 
@@ -19,10 +20,8 @@ def inferencia_interfaz(question):
     script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
     save_folder = os.path.join(script_dir, 'Indice')
 
-
     # Cargar los datos procesados
     chunks, embeddings, model = load_data(save_folder)
-
 
     # Obtener los chunks más similares
     similar_chunks = get_similar_chunks(question, chunks, embeddings, model, top_n)
@@ -39,16 +38,14 @@ def inferencia_interfaz(question):
         user_prompt+=f"{name_doc}: {chunk_text}\n"
 
 
-
-
     APIkey_OpenRouter=os.getenv("LLMsAPIkey_v7")
     APIkey_Groq=os.getenv("LLMsAPIkey_Groq")
     APIkey_OpenAI=os.getenv("LLMsAPIkey_OpenAI_v5")
 
     system_prompt=LLMs_system_prompts("elaborate_responses","","")
-    respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,"meta-llama/llama-4-scout:free",user_prompt,system_prompt)
-    #respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,"llama-3.3-70b-versatile",user_prompt,system_prompt)
-    #respuesta_LLM=get_LLM_response("OpenAI",APIkey_OpenAI,"gpt-4o-mini",user_prompt,system_prompt)
+    respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,model_response,user_prompt,system_prompt)
+    #respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,model_response,user_prompt,system_prompt)
+    #respuesta_LLM=get_LLM_response("OpenAI",APIkey_OpenAI,model_response,user_prompt,system_prompt)
     print(respuesta_LLM)
 
     return respuesta_LLM
