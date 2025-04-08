@@ -295,6 +295,8 @@ Los modelos que vamos a evaluar son:
 * microsoft/phi-3-medium-128k-instruct:free  
 * mistralai/mistral-7b-instruct:free  
 * gpt-4o-mini
+* meta-llama/llama-4-maverick:free
+* meta-llama/llama-4-scout:free
 
 
 
