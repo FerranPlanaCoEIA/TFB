@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv
 from helpers.crear_indice import load_data
 from helpers.hacer_inferencia import get_similar_chunks
@@ -10,9 +11,8 @@ load_dotenv()
 def inferencia_interfaz(question):
 
     ###### Parámetros
-    top_n=10
-    model_response="google/gemini-2.0-flash-thinking-exp:free"
-    #question = "¿Es necesario saber mucho del Cosmere para poder leer alguno de los libros?"
+    top_n=15
+    model_response="meta-llama/llama-4-maverick:free"
     ######
 
 
@@ -35,17 +35,32 @@ def inferencia_interfaz(question):
         url=f"https://es.coppermind.net/wiki/{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
         #print(f"{i}. DOCID: {doc_id} | Document Name: {url} | Chunk number: {chunk_number} | Similarity: {similarity:.4f}\n{chunk_text}\n")
         name_doc=f"{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
-        user_prompt+=f"{name_doc}: {chunk_text}\n"
+        user_prompt+=f"[[{name_doc}]]: {chunk_text}\n"
+        print(user_prompt)
 
 
-    APIkey_OpenRouter=os.getenv("LLMsAPIkey_v7")
-    APIkey_Groq=os.getenv("LLMsAPIkey_Groq")
-    APIkey_OpenAI=os.getenv("LLMsAPIkey_OpenAI_v5")
+    APIkey_OpenRouter=os.getenv("LLMsAPIkey_v2")
 
     system_prompt=LLMs_system_prompts("elaborate_responses","","")
-    respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,model_response,user_prompt,system_prompt)
-    #respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,model_response,user_prompt,system_prompt)
-    #respuesta_LLM=get_LLM_response("OpenAI",APIkey_OpenAI,model_response,user_prompt,system_prompt)
+    #respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,model_response,user_prompt,system_prompt)
+
+    respuesta_LLM="\
+    El Reino Cognitivo de Scadrial es el lugar donde el alma de Ati quedó libre de Ruina y apareció tras la muerte de este a manos de Vin, que poseía la Esquirla de Conservación. Antes de ir al Más Allá, Ati miró alrededor del subastral de Scadrial y se preguntó en voz alta si se encontraba en Vax.\
+    \
+    [[Vax]]\
+    [[Scadrial]]"
+
+
+    patron=r"\[\[.*?\]\]"
+    referencias_array=re.findall(patron,respuesta_LLM)
+    for ii in range(len(referencias_array)):
+        referencias_array[ii]=re.sub(r"\[\[|\]\]","",referencias_array[ii])
+        url="https://es.coppermind.net/wiki/"+referencias_array[ii]
+        referencias_array[ii]=f"<a href='{url}'>{referencias_array[ii]}</a>"
+        print(referencias_array[ii])
+    referencias="<br>".join(referencias_array)
+    referencias="<br><br>Referencias:<br>"+referencias
+    respuesta_LLM=re.sub(patron,"",respuesta_LLM).strip()+referencias
     print(respuesta_LLM)
 
     return respuesta_LLM
