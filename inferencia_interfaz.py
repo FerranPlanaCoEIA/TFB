@@ -28,28 +28,17 @@ def inferencia_interfaz(question):
 
     # Mostrar los resultados
     user_prompt=f"Pregunta: {question}\n\nConocimiento:\n"
-    #print("Los 10 chunks más similares a tu pregunta son:\n")
     for i, (chunk, similarity) in enumerate(similar_chunks, 1):
         # Desempaquetar la tupla (doc_id, doc_name, chunk_number, chunk_text)
         doc_id, doc_name, chunk_number, chunk_text = chunk
         url=f"https://es.coppermind.net/wiki/{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
-        #print(f"{i}. DOCID: {doc_id} | Document Name: {url} | Chunk number: {chunk_number} | Similarity: {similarity:.4f}\n{chunk_text}\n")
         name_doc=f"{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
         user_prompt+=f"[[{name_doc}]]: {chunk_text}\n"
-        print(user_prompt)
-
 
     APIkey_OpenRouter=os.getenv("LLMsAPIkey_v2")
 
     system_prompt=LLMs_system_prompts("elaborate_responses","","")
-    #respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,model_response,user_prompt,system_prompt)
-
-    respuesta_LLM="\
-    El Reino Cognitivo de Scadrial es el lugar donde el alma de Ati quedó libre de Ruina y apareció tras la muerte de este a manos de Vin, que poseía la Esquirla de Conservación. Antes de ir al Más Allá, Ati miró alrededor del subastral de Scadrial y se preguntó en voz alta si se encontraba en Vax.\
-    \
-    [[Vax]]\
-    [[Scadrial]]"
-
+    respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,model_response,user_prompt,system_prompt)
 
     patron=r"\[\[.*?\]\]"
     referencias_array=re.findall(patron,respuesta_LLM)
@@ -57,11 +46,9 @@ def inferencia_interfaz(question):
         referencias_array[ii]=re.sub(r"\[\[|\]\]","",referencias_array[ii])
         url="https://es.coppermind.net/wiki/"+referencias_array[ii]
         referencias_array[ii]=f"<a href='{url}'>{referencias_array[ii]}</a>"
-        print(referencias_array[ii])
     referencias="<br>".join(referencias_array)
     referencias="<br><br>Referencias:<br>"+referencias
     respuesta_LLM=re.sub(patron,"",respuesta_LLM).strip()+referencias
-    print(respuesta_LLM)
 
     return respuesta_LLM
 

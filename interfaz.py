@@ -2,6 +2,9 @@ import streamlit as st
 import base64
 from inferencia_interfaz import inferencia_interfaz
 
+#st.set_page_config(page_title="RAG de la Coppermind", page_icon="📖", layout="centered") # Con un icono
+st.set_page_config(page_title="RAG de la Coppermind", page_icon="Interfaz-Images/GhostBloods.jpg", layout="centered") # Con una foto
+
 # Función para cargar una imagen en formato base64
 def cargar_imagen_base64(ruta_imagen):
     with open(ruta_imagen, "rb") as archivo_imagen:
@@ -29,17 +32,18 @@ def aplicar_estilos():
         footer {{visibility: hidden;}}    /* Oculta el footer */
         header {{visibility: hidden;}}    /* Oculta el header */
         .respuesta-cuadro {{
-            background-color: #f0f0f0; /* Color gris claro */
+            background-color: #464646; /* Color del cuadro de texto */
+            color: #ffffff;
             padding: 20px; /* Espaciado interno */
             border-radius: 5px; /* Bordes redondeados */
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Sombra */
-            background-color: #464646; /* Color del cuadro de texto */
-            color: #ffffff;
+            text-align: justify; /* Justificar el texto */
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
+
 
 # Aplicar estilos al inicio
 aplicar_estilos()
@@ -61,7 +65,7 @@ def manejar_input():
     aplicar_estilos()
 
 # Campo de texto con envío al presionar Enter
-st.text_input("Escribe tu pregunta:", key="texto", on_change=manejar_input, placeholder="")
+st.text_input("Haz una pregunta sobre el Cosmere:", key="texto", on_change=manejar_input, placeholder="")
 
 # Botón de envío alternativo
 if st.button("Enviar"):
