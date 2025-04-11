@@ -58,11 +58,11 @@ if "respuesta" not in st.session_state:
 # Función para manejar el envío
 def manejar_input():
     texto = st.session_state.texto
+    aplicar_estilos()
     if texto.strip():
         with st.spinner("Generando respuesta..."):  # Mostrar mensaje mientras se genera la respuesta
             st.session_state.respuesta = inferencia_interfaz(texto)
-    # Reaplicar estilos después de actualizar el estado
-    aplicar_estilos()
+    
 
 # Campo de texto con envío al presionar Enter
 st.text_input("Haz una pregunta sobre el Cosmere:", key="texto", on_change=manejar_input, placeholder="")
