@@ -15,7 +15,7 @@ model_embeddings="distiluse-base-multilingual-cased-v2"
 
 # Parte 1: Procesar todos los archivos md y guardar los datos
 script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
-carpeta_path = os.path.join(script_dir, 'Base de datos')
+carpeta_path = os.path.join(script_dir, 'Base de datos_Cosmere')
 save_folder = os.path.join(script_dir, 'Indice')
 
 print("Procesando archivos Markdown...")

@@ -5,10 +5,8 @@ venv/
 
 
 # Ignorar todos los md y html de la carpeta "Base de datos"
-Base de datos/*.md
-Base de datos/*.html
-Base de datos
-Base de datos_Cosmere
+Base de datos RAG general
+Base de datos_Cosmere/*
 # Ignorar todos los .pkl
 *.pkl
 # Ignorar todos los .xlsx
