@@ -1,4 +1,27 @@
-# <h1 style="font-size: 50px;"><i>Chatbot</i> de la <i>Coppermind</i>, una <i>wikipedia</i> del <i>Cosmere</i></h1>  
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Ferrán Plana Caminero">
+    <style>
+        .titulo {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-top: 2em;
+        }
+        .autor {
+            font-size: 1.5em;
+            font-weight: normal;
+            color: #555;
+            text-align: center;
+            margin-top: 1em;
+        }
+    </style>
+    <title>
+        RAG de la Coppermind, una Wikipedia del Cosmere
+    </title>
+</head>
 
 # Introducción  
 
@@ -63,7 +86,8 @@ Al hacer una pregunta, obtenemos los <i>chunks</i> con mayor similitud, el núme
 </p>
 
 > Question: ¿Se puede leer algún libro del Cosmere sin haber leído otras sagas?
-> The 3 chunks most similar to your question are:
+> The 3 chunks most similar to your question are:  
+>
 > 1. DOCID: 12 | Document Name: https://es.coppermind.net/wiki/Cosmere | Chunk number: 3 | Similarity: 0.6855  
 > subyacentes, apareciendo algunos personajes en otros mundos ajenos al suyo. A pesar de las conexiones, Brandon ha dejado claro que uno no necesita ningún conocimiento del Cosmere en general para leer, entender, o disfrutar de los libros que tienen lugar en él. Las secuencia principal del Cosmere consistirá en la saga *Dragonsteel*"), la trilogía de *Elantris*, al menos cuatro eras de la saga *Nacidos de la bruma*") y *El archivo de las tormentas*. La historia del Cosmere no incluye ningún libro que haga referencia a la Tierra, puesto que la tierra no está en el Cosmere. Para una lista completa
 > 
@@ -75,7 +99,9 @@ qué libro fue eso respondió *Brazales de Duelo")*. * La misión de Hoid quizá
 
 Además, se puede obtener una gráfica interesante: el histograma de la similitud entre cada <i>chunk</i> de la base de datos y la pregunta.  
 
-![](Images/distribucion-similitudes.png){ width=50%, align=center }
+::: center
+![Distribución de _chunks_ con mayor similitud respecto a una pregunta dada.](Images/distribucion-similitudes.png){ width=50%, align=center }
+:::
 
 <span style="color: red;">(Script en Creación de la base de datos.ipynb, Google Colab)</span>
 </p>
@@ -128,15 +154,15 @@ Con el objetivo de poder valorar si los cambios tienen un impacto positivo en el
 </p>
 
 <p style="text-align: justify;">
-* OK/KO RAG: Porcentaje de preguntas en las que el documento/s <i>best</i> se encuentra entre los encontrados por la búsqueda semántica.  
+* OK RAG: Porcentaje de preguntas en las que el documento/s <i>best</i> se encuentra entre los encontrados por la búsqueda semántica.  
 </p>
 
 <p style="text-align: justify;">
-* OK/KO <i>LLM</i>: Porcentaje de preguntas en las que el documento/s <i>best</i> se encuentra entre los elegidos por el <i>LLM</i> para redactar la respuesta.  
+* OK FUENTES: Porcentaje de preguntas en las que el documento/s <i>best</i> se encuentra entre los elegidos y referenciados por el <i>LLM</i> para redactar la respuesta.  
 </p>
 
 <p style="text-align: justify;">
-* OK/KO <i>LLM as a judge</i>: Porcentaje de preguntas en las que un segundo <i>LLM</i> valora que la respuesta del primer modelo se ajusta a la respuesta <i>best</i>. El LLM elegido para el test de <i>LLM as a judge</i> es el <i>Llama 3.3 70B versatile</i>, ya que es un <i>LLM</i> grande, la útima versión de los modelos <i>LLama</i> y apto para gran variedad de tareas.   
+* OK RESPUESTA: Porcentaje de preguntas en las que un segundo <i>LLM</i> valora si la respuesta del primero se ajusta a la respuesta <i>best</i>. El <i>LLM</i> elegido para el test de <i>LLM as a judge</i> ha sido el <i>Llama 3.3 70B versatile</i>, ya que es un <i>LLM</i> grande, la útima versión de los modelos <i>LLama</i> (hasta el lanzamiento del <i>Llama 4</i>) y apto para gran variedad de tareas.   
 </p>
 
 <span style="color: red;">(Script en Test Automático.ipynb, Google Colab)</span>
@@ -162,14 +188,9 @@ El <i>user prompt</i> es el siguiente:
 > Respuesta_Generada:  
 > {Respuesta generada por el <i>LLM</i>}
 
-
-
-<span style="color: red;">EXPLICAR, DECIR LOS % OK, LLM AS A JUDGE?, ENLACE AL GS Y A UN EJEMPLO DEL GS EJECUTADO, ENLACE A EXCEL DE RESULTADOS, ETC. </span> 
-
 <p style="text-align: justify;">
-Las preguntas, documento/s <i>best</i> y respuestas <i>best</i> se pueden ver aquí: [_Input Test Automático.xlsx_](https://docs.google.com/spreadsheets/d/1gs--ymPUeTYjbyf6AwcPHpowz6-6ehQb/edit?usp=sharing&ouid=117815217117454739708&rtpof=true&sd=true).
+Las preguntas, documento/s <i>best</i> y respuestas <i>best</i> se pueden ver aquí: [_Input Test Automático.xlsx_](https://docs.google.com/spreadsheets/d/1gs--ymPUeTYjbyf6AwcPHpowz6-6ehQb/edit?usp=sharing&ouid=117815217117454739708&rtpof=true&sd=true). El registro de todos los tests se puede ver aquí: PONER
 </p>
-
 
 ### III.I. <i>chunk size</i>, <i>overlap</i> y <i>top n</i>
 
@@ -178,29 +199,31 @@ El primer objetivo de este test es determinar el tamaño óptimo de los <i>chunk
 </p>
 
 <p style="text-align: justify;">
-Se han hecho estas pruebas para un <i>chunk size</i> de 50, 75, 100 y 200 tokens, y <i>top n</i> de 3, 5, 10 y 15 <i>chunks</i>. El resultado en detalle de las pruebas puede verse aquí: [_Chunk sze-overlap-topn.xlsx_](https://docs.google.com/spreadsheets/d/1rY1Kpd-hpIVb6air6aGdrMKY75ROrlt2/edit?usp=sharing&ouid=117815217117454739708&rtpof=true&sd=true).  
+Se han hecho estas pruebas para un <i>chunk size</i> de 50, 75, 100 y 200 tokens, y <i>top n</i> de 3, 5, 10 y 15 <i>chunks</i>.  
 </p>
 
-| Chunk_size | top_n | OK RAG | OK FUENTES | OK RESPUESTA |
-|------------|-------|--------|------------|--------------|
-| 50         | 3     | 68,38% | 55,15%     | 47,06%       |
-|            | 5     | 78,68% | 61,76%     | 55,15%       |
-|            | 10    | 87,50% | 72,79%     | 66,18%       |
-|            | 15    | 90,44% | 74,26%     | 69,85%       |
-| 75         | 3     | 63,97% | 48,53%     | 42,22%       |
-|            | 5     | 72,79% | 55,88%     | 55,88%       |
-|            | 10    | 83,09% | 63,97%     | 63,97%       |
-|            | 15    | 86,76% | 69,12%     | 69,85%       |
-| **100**        | 3     | 66,18% | 51,47%     | 44,85%       |
-|            | 5     | 75,74% | 60,29%     | 52,94%       |
-|            | **10**    | **84,56%** | **66,91%**     | **66,18%**       |
-|            | 15    | 88,24% | 69,85%     | 72,79%       |
-| 200        | 3     | 61,03% | 47,06%     | 44,12%       |
-|            | 5     | 65,44% | 53,68%     | 52,21%       |
-|            | 10    | 74,26% | 53,68%     | 56,62%       |
-|            | 15    | 79,41% | 58,09%     | 59,56%       |
+| Chunk_size (tokens) | top_n (chunks) | OK RAG (%) | OK FUENTES (%) | OK RESPUESTA (%) |
+|---------------------|----------------|------------|----------------|------------------|
+| 50                  | 3              | 68,38      | 55,15          | 47,06            |
+|                     | 5              | 78,68      | 61,76          | 55,15            |
+|                     | 10             | 87,50      | 72,79          | 66,18            |
+|                     | 15             | 90,44      | 74,26          | 69,85            |
+| 75                  | 3              | 63,97      | 48,53          | 42,22            |
+|                     | 5              | 72,79      | 55,88          | 55,88            |
+|                     | 10             | 83,09      | 63,97          | 63,97            |
+|                     | 15             | 86,76      | 69,12          | 69,85            |
+| **100**             | 3              | 66,18      | 51,47          | 44,85            |
+|                     | 5              | 75,74      | 60,29          | 52,94            |
+|                     | **10**         | **84,56**  | **66,91**      | **66,18**      |
+|                     | 15             | 88,24      | 69,85          | 72,79            |
+| 200                 | 3              | 61,03      | 47,06          | 44,12            |
+|                     | 5              | 65,44      | 53,68          | 52,21            |
+|                     | 10             | 74,26      | 53,68          | 56,62            |
+|                     | 15             | 79,41      | 58,09          | 59,56            |
 
-![](Images/chunksize-topn.jpg){ width=50%, align=center }
+::: center
+![Valor de las métricas OR RAG, FUENTES y RESPUESTA en función del _chunk size_ y _top n_, con _chunk overlap_ del 20% del _chunk size_, modelo de _embeddings_ _paraphrase-MiniLM-L6-v2_ y modelo de elaboración de la respuesta _Google-Gemini 2.0 pro exp 02/05_ (temperatura y _repetition penalty_ a 0).](Images/chunksize-topn.jpg){ width=50%, align=center }
+:::
 
 <p style="text-align: justify;">
 A raíz de estos resultados se utilizará un <i>chunk size</i> de 100 <i>tokens</i> (por tanto, un <i>chunk overlap</i> de 20 <i>tokens</i>) y un <i>top n</i> de 10 <i>chunks</i>. Se escoge esto por varias razones. En primer lugar, es el que mayor porcentaje de OK arroja en OK de la respuesta para <i>top n</i> de 10, junto a un <i>chunk size</i> de 50. Se elige sobre este porque, para resultados iguales, un <i>chunk size</i> de 100 ofrece más contexto. No se escoge <i>chunk size</i> de 100 y <i>top n</i> de 15 porque la mejora en esta métrica no es demasiada. Además, hay que tener en cuenta el tiempo de respuesta del modelo, una métrica que en este caso no se ha evaludao, pero que es fundamental, ya que esta aplicación de IA es un <i>chatbot</i>. En resumen, los parámetros elegidos han sido <b><i>chunk size</i> = 100 <i>tokens</i>, <i>chunk overlap</i> = 20 <i>tokens</i>, <i>top n</i> = 10 <i>chunks</i></b>.  
@@ -223,11 +246,11 @@ Lo ideal sería hacer primero este test y después el III.I, ya que es más dete
 Los modelos de <i>embeddings</i> que vamos a comparar son los siguientes:  
 
 * <i>paraphrase-MiniLM-L6-v2</i> (as-is, entrenado solo en inglés)
-* <i>paraphrase-multilingual-MiniLM-L12-v2</i>  
-* <i>paraphrase-multilingual-mpnet-base-v2</i> 
-* <i>distiluse-base-multilingual-cased-v2</i> 
-* <i>stsb-xlm-r-multilingual</i> 
-* <i>Shaharyar6/finetuned_sentence_similarity_spanish</i> 
+* <i>paraphrase-multilingual-MiniLM-L12-v2</i>
+* <i>paraphrase-multilingual-mpnet-base-v2</i>
+* <i>distiluse-base-multilingual-cased-v2</i>
+* <i>stsb-xlm-r-multilingual</i>
+* <i>Shaharyar6/finetuned_sentence_similarity_spanish</i>
 
 <p style="text-align: justify;">
 Por desgracia, y debido a las limitaciones de tener que usar llamadas gratis via API a <i>LLMs</i> ofrecidos por distintos proveedores, el <i>LLM</i> de elaboración de la respuesta que usé en el test III.I, <i>Google: Gemini Pro 2.0 Experimental (free)</i>, ya no está disponible. Debido a esto voy a tener que utilizar otro, <i>Google: Gemini 2.0 Flash Thinking Experimental 01-21 (free)</i>. Aún así, esto no invalida las conclusiones de este test.
@@ -235,16 +258,18 @@ Por desgracia, y debido a las limitaciones de tener que usar llamadas gratis via
 
 Los resultados de este test son los siguientes:  
 
-| Modelo de embeddings                                    | OK RAG  | OK FUENTES | OK RESPUESTA |
+| Modelo de embeddings                                    | OK RAG (%)  | OK FUENTES (%) | OK RESPUESTA (%) |
 |---------------------------------------------------------|---------|------------|--------------|
-| paraphrase-MiniLM-L6-v2 (inglés)                                | 84,56%  | 66,18%     | 61,03%       |
-| paraphrase-multilingual-MiniLM-L12-v2                 | 88,97%  | 77,21%     | 80,74%       |
-| paraphrase-multilingual-mpnet-base-v2                 | 89,71%  | 76,47%     | 78,68%       |
-| **distiluse-base-multilingual-cased-v2**                  | **88,24%**  | **77,94%**     | **82,35%**       |
-| stsb-xlm-r-multilingual                               | 67,65%  | 47,06%     | 56,62%       |
-| Shaharyar6/finetuned_sentence_similarity_spanish      | 92,65%  | 82,35%     | 83,82%       |
+| paraphrase-MiniLM-L6-v2 (inglés)                                | 84,56  | 66,18     | 61,03       |
+| paraphrase-multilingual-MiniLM-L12-v2                 | 88,97  | 77,21     | 80,74       |
+| paraphrase-multilingual-mpnet-base-v2                 | 89,71  | 76,47     | 78,68       |
+| **distiluse-base-multilingual-cased-v2**                  | **88,24**  | **77,94**     | **82,35**       |
+| stsb-xlm-r-multilingual                               | 67,65  | 47,06     | 56,62       |
+| Shaharyar6/finetuned_sentence_similarity_spanish      | 92,65  | 82,35     | 83,82       |
 
-![](Images/modelo-embeddings.jpg){ width=50%, align=center }
+::: center
+![Valor de las métricas OR RAG, FUENTES y RESPUESTA en función del modelo de _embeddings_, con _chunk size_ de 100 _tokens_, _chunk overlap_ de 20 _tokens_, _top n_ de 10 _chunks_ y modelo de elaboración de la respuesta _Google: Gemini 2.0 Flash Thinking Experimental 01-21_ (temperatura y _repetition penalty_ a 0).](Images/modelo-embeddings.jpg){ width=50%, align=center }
+:::
 
 <p style="text-align: justify;">
 Podemos observar que, aunque OK RAG del modelo entrenado en inglés es similar al resto (entrenados en español), en las otras dos métricas es muy inferior. Es decir, los modelos de <i>embeddings</i> entrenados en español están encontrando chunks mucho más útiles para elaborar la respuesta.
@@ -272,10 +297,12 @@ Como los resultados de los modelos entrenados en español (quitando el mencionad
 | stsb-xlm-r-multilingual                               | 365                               |
 | Shaharyar6/finetuned_sentence_similarity_spanish      | 447                               |
 
-![](Images/modelo-embeddings-tiempos.jpg){ width=50%, align=center }
+::: center
+![Tiempo de creación del índice de la base de documentos en función del modelo de _embeddings_, con _chunk size_ y _overlap_ de 100 y 20 _tokens_ respectivamente.](Images/modelo-embeddings-tiempos.jpg){ width=50%, align=center }
+:::
 
 <p style="text-align: justify;">
-Con estos resultados, el modelo de <i>embeddings</i> que vamos a utilizar es <i>distiluse-base-multilingual-cased-v2</i>, el segundo que mejor OK RESPUESTA da y el tercero más rápido, además del más rápido de los modelos por encima del 70% de OK RESPUESTA.
+Con estos resultados, el modelo de <i>embeddings</i> que vamos a utilizar es <b><i>distiluse-base-multilingual-cased-v2</i></b>, el segundo que mejor OK RESPUESTA da y el tercero más rápido, además del más rápido de los modelos por encima del 70% de OK RESPUESTA.
 </p>
 
 ### III.III. <i>LLM</i> de generación de la respuesta  
@@ -286,26 +313,47 @@ A continuación, se evaluará qué <i>LLM</i> se utilizará para generar la resp
 
 Los modelos que vamos a evaluar son:  
 
-* google/gemini-2.0-flash-thinking-exp:free  
-* google/gemini-2.5-pro-exp-03-25:free  
-* meta-llama/llama-3.3-70b-instruct:free  
+* google/gemini-2.0-flash-thinking-exp:free
+* google/gemini-2.5-pro-exp-03-25:free
+* meta-llama/llama-3.3-70b-instruct:free
 * deepseek/deepseek-chat:free (V3)
 * deepseek/deepseek-r1-zero:free
-* qwen/qwen-2.5-72b-instruct:free  
-* microsoft/phi-3-medium-128k-instruct:free  
-* mistralai/mistral-7b-instruct:free  
+* qwen/qwen-2.5-72b-instruct:free
+* microsoft/phi-3-medium-128k-instruct:free
+* mistralai/mistral-7b-instruct:free
 * gpt-4o-mini
 * meta-llama/llama-4-maverick:free
 * meta-llama/llama-4-scout:free
 
+<p style="text-align: justify;">
+Los resultados han sido los siguientes (recordemos que la métrica OK RAG tiene un valor de 88,24%, que no cambiará con el <i>LLM</i> de elaboración de la respuesta, por lo que no incluiremos esta métrica aquí):
+</p>
 
+| Modelo de respuesta                               | OK FUENTES (%) | OK RESPUESTA (%) |
+|---------------------------------------------------|----------------|------------------|
+| google/gemini-2.0-flash-thinking-exp:free         | 77,94          | 82,35            |
+| google/gemini-2.5-pro-exp-03-25:free              | 80,88          | 83,09            |
+| meta-llama/llama-3.3-70b-instruct:free            | 82,35          | 80,15            |
+| deepseek/deepseek-chat:free (V3)                  | 79,41          | 82,35            |
+| deepseek/deepseek-r1-zero:free                    | 75,00          | 83,09            |
+| qwen/qwen-2.5-72b-instruct:free                   | 77,21          | 79,41            |
+| microsoft/phi-3-medium-128k-instruct:free         | 0,00           | 66,91            |
+| mistralai/mistral-7b-instruct:free                | 73,53          | 73,53            |
+| gpt-4o-mini                                       | 79,41          | 76,47            |
+| **meta-llama/llama-4-maverick:free**                  | **86,76**          | **83,82**            |
+| meta-llama/llama-4-scout:free                     | 83,09          | 77,94            |
 
+::: center
+![Valor de las métricas OK FUENTES y RESPUESTA en función del modelo de elaboración de la respuesta (temperatura y _repetition penalty_ a 0), con _distiluse-base-multilingual-cased-v2_ como modelo de _embeddings_, _chunk size_ de 100 _tokens_, _chunk overlap_ de 20 _tokens_ y _top n_ de 10 _chunks_.](Images/modelo-respuesta.jpg){ width=50%, align=center }
+:::
 
-
-
-
+<p style="text-align: justify;">
+A la vista de estos resultados se aprecia que el mejor modelo de elaboración de la respuesta es <b><i>meta-llama/llama-4-maverick:free</i></b>, de reciente lanzamiento el 5/04/2025. Se puede apreciar que en la métrica OK RESPUESTA está cerca de otros, como los <i>gemini</i> o <i>deepseek</i>, pero parece que hay más diferencia al referenciar las fuentes.
+</p>
 
 # Puesta en producción
+
+# Conclusiones
 
 # Posibles mejoras
 
@@ -367,17 +415,45 @@ Además de estas métricas, podría calcularse la métrica <i>Groundedness</i> d
 En el código de este trabajo hago las llamadas a los <i>LLMs</i> de los distintos proveedores de forma algo sucia; cada uno necesita una estructura diferente. <i>LiteLLM</i> es una librería de código abierto que actúa como una interfaz unificada para hacer estas llamadas, de forma que lo hace mucho más escalable (es más fácil añadir otros proveedores) y limpia. En la carpeta de Apoyo dejo un pequeño tutorial de cómo se haría.
 </p>
 
+<p style="text-align: justify;">
+Esto finalmente me ha dado tiempo a incluirlo.
+</p>
+
 # Líneas a futuro
 
+<p style="text-align: justify;">
+En esta sección voy a detallar las líneas a futuro que surgen de este trabajo. Son ideas que han salido durante la realización del mismo o gracias a las clases recibidas, como las de la sección de posibles mejoras, pero estas suponen cambios grandes en el funcionamiento de la solución actual y podrían formar parte de un nuevo trabajo por sí mismas. 
+</p> 
 
+## 1. Implementación de un <i>chatbot</i>  
 
-* Crear un agente que haga búsquedas y decida cuántas hacer, el top-n y cuándo parar (así se podría hacer un chatbot de verdad).
-* Usar structured outputs para las citas.
-* Creación de una interfaz de chat estilo <i>chatgpt</i>.  
-* Detector de <i>chit-chat</i>.  
-* Implementación real del *chat* (que no sea únicamente pregunta-respuesta aisladas, que recoja las preguntas anteriores de ese chat).  
-* <i>RAG-fusion</i>: creación de preguntas (para querys extra) de apoyo mediante un <i>LLM</i>.  
+<p style="text-align: justify;">
+Actualmente este <i>RAG</i> funciona sin poder hacer varias iteraciones sobre las mismas preguntas; únicamente recibe una <i>query</i> de entrada a la que da respuesta. En un primer momento se pretendía que se pudiera <i>chatear</i>, pero esto supone un gran cambio en la lógica, como el manejo del historial de la conversación, una búsqueda más dinámica en el <i>RAG</i>, etc. Una de las piezas nuevas que habría que pensar en incluir es un detector de <i>chit-chat</i> que, si uno de los mensajes del usuario no tiene intención de realizar una búsqueda en el <i>RAG</i>, sepa manejarlo y no haga la búsqueda.
+</p>
 
-# Referencias 
+## 2. Implementación de un agente
 
+<p style="text-align: justify;">
+La solución actual es muy rígida por construcción: para cada <i>query</i> obtiene un número fijo de <i>chunks</i>, con los que tiene que elaborar la respuesta. Si ahí no está la respuesta no puede hacerse nada. Todos los hiperparámetros de esta solución son fijos, aunque puedan no ser los más idóneos para alguna pregunta. Un ejemplo de pregunta para la que esta solución no es idónea es si se le pidiera hacer una lista de características de varios elementos: lo ideal sería que buscara cada elemento por separado, pero tal y como está planteada la solución actualmente hace una única búsqueda, pudiendo no encontrar toda la información.
+</p>
+
+<p style="text-align: justify;">
+En este sentido, sería muy interesante elaborar una solución en la que sea un agente el que gestione las búsquedas en la base de datos y la elaboración de la respuesta. De esta forma, el agente puede adaptar la <i>query</i> del usuario y hacer búsquedas con <i>querys</i> más adecuadas, no hacer solamente una, decidir si tiene que hacer más porque aún no tiene la respuesta o modificar hiperparámetros como <i>top_n</i>.
+</p>
+
+## 3. Mejoras en las <i>querys</i> del <i>RAG</i>
+
+<p style="text-align: justify;">
+Una técnica muy habitual en <i>RAGs</i> productivos es <i>RAG-fusión</i>. <i>RAG-fusión</i> consiste en, con la ayuda de un <i>LLM</i>, generar más <i>querys</i> a partir de la inicial, hacer varias búsquedas para cada <i>query</i>, reordenar los <i>chunks</i> encontrados y generar la respuesta con todos ellos. Esta solución aporta mayor cobertura, precisión y respuestas más robustas a las soluciones de <i>RAG</i>.
+</p>
+
+## 4. Mejoras en la creación del índice
+
+<p style="text-align: justify;">
+Una de las limitaciones de este <i>RAG</i> es que en la creación del índice se hacen <i>embeddings</i> directamente sobre el contenido de la base de datos, pero este contenido no tiene por qué ser muy similar a las preguntas que hacen los usuarios. Otra opción es hacer los <i>embeddings</i> sobre las preguntas que podría responder cada <i>chunk</i> de la base de datos, generando estas preguntas con la ayuda de un <i>LLM</i>.
+</p>
+
+<p style="text-align: justify;">
+Otra de las posibles mejoras en la cración del índice de este tipo de sooluciones es incluir un pequeño resumen de cada documento como metadato de los <i>chunks</i> que lo conforman. De esta forma, el <i>LLM</i> que elabora la respuesta tiene más contexto y puede responder mejor. Estos resúmenes pueden crearse con otro <i>LLM</i>.
+</p>
 
