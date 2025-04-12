@@ -15,6 +15,7 @@ def inferencia_interfaz(question):
     model_response="meta-llama/llama-4-maverick:free"
     ######
 
+    APIkey_OpenRouter=os.getenv("LLMsAPIkey")
 
     # Parte 2: Responder preguntas
     script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
@@ -31,11 +32,8 @@ def inferencia_interfaz(question):
     for i, (chunk, similarity) in enumerate(similar_chunks, 1):
         # Desempaquetar la tupla (doc_id, doc_name, chunk_number, chunk_text)
         doc_id, doc_name, chunk_number, chunk_text = chunk
-        url=f"https://es.coppermind.net/wiki/{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
-        name_doc=f"{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
-        user_prompt+=f"[[{name_doc}]]: {chunk_text}\n"
-
-    APIkey_OpenRouter=os.getenv("LLMsAPIkey_v2")
+        user_prompt+=f"[[{doc_name}]]: {chunk_text}\n"
+    print(user_prompt)
 
     system_prompt=LLMs_system_prompts("elaborate_responses","","")
     respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,model_response,user_prompt,system_prompt)
@@ -43,9 +41,7 @@ def inferencia_interfaz(question):
     patron=r"\[\[.*?\]\]"
     referencias_array=re.findall(patron,respuesta_LLM)
     for ii in range(len(referencias_array)):
-        referencias_array[ii]=re.sub(r"\[\[|\]\]","",referencias_array[ii])
-        url="https://es.coppermind.net/wiki/"+referencias_array[ii]
-        referencias_array[ii]=f"<a href='{url}'>{referencias_array[ii]}</a>"
+        referencias_array[ii]=re.sub(r"\[\[|\]\]|.md","",referencias_array[ii])
     referencias="<br>".join(referencias_array)
     referencias="<br><br>Referencias:<br>"+referencias
     respuesta_LLM=re.sub(patron,"",respuesta_LLM).strip()+referencias

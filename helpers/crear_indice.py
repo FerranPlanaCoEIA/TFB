@@ -41,7 +41,7 @@ def create_embeddings(chunks, model_embeddings):
     embeddings = model.encode([chunk[3] for chunk in chunks])
     return embeddings, model
 
-# Función para guardar datos en Google Drive
+# Función para guardar datos
 def save_data(chunks, embeddings, model, save_folder):
     os.makedirs(save_folder, exist_ok=True)
     with open(os.path.join(save_folder, 'chunks_with_ids.pkl'), 'wb') as f:

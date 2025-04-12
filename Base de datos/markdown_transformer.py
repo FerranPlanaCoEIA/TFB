@@ -48,8 +48,6 @@ def transform_to_md(script_path,files_to_index,extensions_to_convert):
                 files_to_index[files_to_index.index(file)]=new_name
 
 
-
-
     return files_to_index
 
             
@@ -63,6 +61,6 @@ files_to_index,files_to_convert=create_convert_and_index_array(script_path,exten
 
 files_to_index=transform_to_md(script_path,files_to_index,extensions_to_convert)
 
-os.system("echo hello")
+
 
 
