@@ -2,8 +2,7 @@ import streamlit as st
 import base64
 from inferencia_interfaz import inferencia_interfaz
 
-#st.set_page_config(page_title="RAG de la Coppermind", page_icon="📖", layout="centered") # Con un icono
-st.set_page_config(page_title="RAG de la Coppermind", page_icon="Interfaz-Images/GhostBloods.jpg", layout="centered") # Con una foto
+st.set_page_config(page_title="RAG General", page_icon="🤖", layout="centered") # Con un icono
 
 # Función para cargar una imagen en formato base64
 def cargar_imagen_base64(ruta_imagen):
@@ -11,7 +10,7 @@ def cargar_imagen_base64(ruta_imagen):
         return base64.b64encode(archivo_imagen.read()).decode()
 
 # Ruta de la imagen en la carpeta Interfaz-Images
-ruta_imagen = "Interfaz-Images/Image1.webp"  # Cambia el nombre del archivo
+ruta_imagen = "Interfaz-Images/Background Image.png"  # Cambia el nombre del archivo
 
 # Cargar la imagen en base64
 imagen_base64 = cargar_imagen_base64(ruta_imagen)
@@ -49,7 +48,7 @@ def aplicar_estilos():
 aplicar_estilos()
 
 # Título de la aplicación
-st.title("RAG de la Coppermind")
+st.title("RAG General")
 
 # Estado inicial de la respuesta
 if "respuesta" not in st.session_state:
@@ -65,7 +64,7 @@ def manejar_input():
     
 
 # Campo de texto con envío al presionar Enter
-st.text_input("Haz una pregunta sobre el Cosmere:", key="texto", on_change=manejar_input, placeholder="")
+st.text_input("Haz una pregunta:", key="texto", on_change=manejar_input, placeholder="")
 
 # Botón de envío alternativo
 if st.button("Enviar"):
