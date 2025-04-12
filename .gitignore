@@ -7,12 +7,12 @@ venv/
 Base de datos_Cosmere/*.md
 Base de datos_Cosmere/*.html
 # Ignorar todos los md, html, docx y pdf de la carpeta "Base de datos"
-Base de datos/*.md
-Base de datos/*.html
-Base de datos/*.docx
-Base de datos/*.pdf
+Base de datos RAG general/*.md
+Base de datos RAG general/*.html
+Base de datos RAG general/*.docx
+Base de datos RAG general/*.pdf
 # Ignorar todos los md de la carpeta "Base de datos/Markdowns convertidos"
-Base de datos/Markdowns convertidos/*.md
+Base de datos RAG general/Markdowns convertidos/*.md
 
 # Ignorar todos los .pkl
 *.pkl

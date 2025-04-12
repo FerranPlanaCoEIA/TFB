@@ -20,7 +20,7 @@ model_embeddings=os.getenv("EMBEDDINGS_MODEL")
 
 # Parte 1: Procesar todos los archivos md y guardar los datos
 script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
-carpeta_path = os.path.join(script_dir, 'Base de datos/Markdowns convertidos')
+carpeta_path = os.path.join(script_dir, 'Base de datos RAG general/Markdowns convertidos')
 save_folder = os.path.join(script_dir, 'Indice')
 
 print("Procesando archivos Markdown...")
