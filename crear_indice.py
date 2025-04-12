@@ -1,17 +1,22 @@
 import os
+from dotenv import load_dotenv
 import time
 import math
 from helpers.crear_indice import process_all_markdown_files
 from helpers.crear_indice import create_embeddings
 from helpers.crear_indice import save_data
-
+load_dotenv()
 
 
 ###### Parámetros
-chunk_size=100
+chunk_size=int(os.getenv("CHUNK_SIZE"))
 chunk_overlap=int(round(0.2*chunk_size))
-model_embeddings="distiluse-base-multilingual-cased-v2"
+model_embeddings=os.getenv("EMBEDDINGS_MODEL")
 ######
+
+
+
+
 
 # Parte 1: Procesar todos los archivos md y guardar los datos
 script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script

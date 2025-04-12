@@ -11,11 +11,12 @@ load_dotenv()
 def inferencia_interfaz(question):
 
     ###### Parámetros
-    top_n=15
-    model_response="meta-llama/llama-4-maverick:free"
+    top_n=int(os.getenv("TOP_N"))
+    model_response=os.getenv("LLM_MODEL")
+    APIkey=os.getenv("LLM_API_KEY")
+    LLM_provider=os.getenv("LLM_PROVIDER")
     ######
 
-    APIkey_OpenRouter=os.getenv("LLMsAPIkey")
 
     # Parte 2: Responder preguntas
     script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
@@ -33,10 +34,9 @@ def inferencia_interfaz(question):
         # Desempaquetar la tupla (doc_id, doc_name, chunk_number, chunk_text)
         doc_id, doc_name, chunk_number, chunk_text = chunk
         user_prompt+=f"[[{doc_name}]]: {chunk_text}\n"
-    print(user_prompt)
 
     system_prompt=LLMs_system_prompts("elaborate_responses","","")
-    respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,model_response,user_prompt,system_prompt)
+    respuesta_LLM=get_LLM_response(LLM_provider,APIkey,model_response,user_prompt,system_prompt)
 
     patron=r"\[\[.*?\]\]"
     referencias_array=re.findall(patron,respuesta_LLM)

@@ -2,7 +2,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import requests
 import json
+import os
+from dotenv import load_dotenv
 from litellm import completion
+load_dotenv()
 
 
 
@@ -25,7 +28,7 @@ def get_LLM_response(proveedor,apikey,endpoint_model,user_prompt,system_prompt):
         {"role": "user", "content": user_prompt}
       ],
       api_key=apikey,
-      temperature=0,
+      temperature=float(os.getenv("LLM_TEMPERATURE")),
       presence_penalty=0,
       )
     return response.choices[0].message.content
