@@ -3,10 +3,17 @@ venv/
 .venv/
 .venv
 
-
-# Ignorar todos los md y html de la carpeta "Base de datos"
+# Ignorar todos los md y html de la carpeta "Base de datos_Cosmere"
+Base de datos_Cosmere/*.md
+Base de datos_Cosmere/*.html
+# Ignorar todos los md, html, docx y pdf de la carpeta "Base de datos"
 Base de datos/*.md
 Base de datos/*.html
+Base de datos/*.docx
+Base de datos/*.pdf
+# Ignorar todos los md de la carpeta "Base de datos/Markdowns convertidos"
+Base de datos/Markdowns convertidos/*.md
+
 # Ignorar todos los .pkl
 *.pkl
 # Ignorar todos los .xlsx
