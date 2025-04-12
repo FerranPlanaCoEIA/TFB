@@ -3,10 +3,9 @@ venv/
 .venv/
 .venv
 
-# Ignorar todos los md y html de la carpeta "Base de datos_Cosmere"
-Base de datos_Cosmere/*.md
-Base de datos_Cosmere/*.html
-# Ignorar todos los md, html, docx y pdf de la carpeta "Base de datos"
+# Ignorar la carpeta "Base de datos_Cosmere"
+Base de datos_Cosmere
+# Ignorar todos los md, html, docx y pdf de la carpeta "Base de datos RAG general"
 Base de datos RAG general/*.md
 Base de datos RAG general/*.html
 Base de datos RAG general/*.docx
