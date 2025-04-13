@@ -16,10 +16,14 @@ Este repositorio puede procesar documentos con las extensiones .pdf, .docx, .htm
 
 Se deben subir los documentos a la carpeta "Base de datos RAG general".
 
-## 4. Crear el índice de la base de datos
+## 4. Convertir los documentos a markdown
+
+Ejecutar **python markdown_transformer.py** desde la carpeta "Base de datos RAG general". Este script colocará todos los documentos de la base de datos convertidos en markdown en la carpeta "Base de datos RAG general/Markdowns convertidos"
+
+## 5. Crear el índice de la base de datos
 
 Para hacer los _embeddings_ de la base de datos, ejecutar **python crear_indice.py**. Paciencia, esto puede llevar varios minutos.
 
-## 5. ¡A hacer preguntas!
+## 6. ¡A hacer preguntas!
 
 Cuando haya terminado lo anterior, basta ejecutar **streamlit run interfaz.py** y abrir http://localhost:8501. ¡A hacer preguntas!
