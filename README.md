@@ -1,22 +1,25 @@
-# TFB
-Chatbot de la Coppermind
+# TFB - RAG General - Ferrán Plana Caminero
+
+## Pasos para ejecutar este repositorio
+
+### 1. Crear el entorno virtual e instalar los requierements
 
 > :warning: **Aviso**: Este repositorio debe ser ejecutado en python 3.11.11. Hacerlo en otra versión podría producir fallos o errores de dependencias a la hora de instalar los requirements.
 
-## Pasar la documentación a pdf  
+## 2. Crear un .env siguiendo lo indicado en el archivo .env_template
 
-pandoc "Documentación TFB.md" -o "Documentación TFB.html" 
-pandoc "Documentación TFB.html" -o "Documentación TFB.pdf" --pdf-engine=pdflatex -V geometry:margin=2.5cm
-cp "Documentación TFB.pdf" /home/fpc/Downloads
+Los modelos de _embeddings_ son modelos de _hugging face_ y las llamadas al _LLM_ de elaboración de la respuesta se hacen mediante la librería _litellm_. Si se quiere hacer llamadas a _LLMs_ de forma gratuita, ver los _notebooks_ de la carpeta "Apoyo".
 
-## Pasar de pdf a texto plano a md  
+## 3. Subir los documentos de la base de datos
 
-Posibilidades:  
+Este repositorio puede procesar documentos con las extensiones .pdf, .docx, .html o .md.  
 
-* pdftotext nombre.pdf - | pandoc -f markdown -t markdown -o nombre.md  
+Se deben subir los documentos a la carpeta "Base de datos RAG general".
 
-* pip install markitdown  
-    pip install "markitdown[all]"  
-    markitdown nombre.pdf -o nombre.md
+## 4. Crear el índice de la base de datos
 
-Buscar alternativas mejores y comparar estas 2
+Para hacer los _embeddings_ de la base de datos, ejecutar **python crear_indice.py**. Paciencia, esto puede llevar varios minutos.
+
+## 5. ¡A hacer preguntas!
+
+Cuando haya terminado lo anterior, basta ejecutar **streamlit run interfaz.py** y abrir http://localhost:8501. ¡A hacer preguntas!
