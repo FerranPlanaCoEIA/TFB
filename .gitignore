@@ -12,3 +12,6 @@ Base de datos_Cosmere/*.html
 *.pkl
 # Ignorar todos los .xlsx
 *.xlsx
+
+Documentacion/*.html
+Documentacion/*md
