@@ -17,3 +17,5 @@ Base de datos RAG general/Markdowns convertidos/*.md
 *.pkl
 # Ignorar todos los .xlsx
 *.xlsx
+
+Documentacion
