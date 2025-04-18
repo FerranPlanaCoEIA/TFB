@@ -18,7 +18,7 @@ Se deben subir los documentos a la carpeta "Base de datos RAG general".
 
 ## 4. Convertir los documentos a markdown
 
-Ejecutar **python markdown_transformer.py** desde la carpeta "Base de datos RAG general". Este script colocará todos los documentos de la base de datos convertidos en markdown en la carpeta "Base de datos RAG general/Markdowns convertidos"
+Ejecutar **python markdown_transformer.py** desde la carpeta "Base de datos RAG general". Este script colocará todos los documentos de la base de datos convertidos a markdown en la carpeta "Base de datos RAG general/Markdowns convertidos"
 
 ## 5. Crear el índice de la base de datos
 
