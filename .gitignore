@@ -19,3 +19,4 @@ Base de datos RAG general/Markdowns convertidos/*.md
 *.xlsx
 
 Documentacion
+helpers/__pycache__
