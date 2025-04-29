@@ -1,6 +1,8 @@
 from sentence_transformers import SentenceTransformer
+from openai import AzureOpenAI
 import pickle
 import os
+import time
 
 # Función para procesar todos los archivos Markdown
 def process_all_markdown_files(carpeta_path, chunk_size, chunk_overlap):
@@ -41,15 +43,25 @@ def create_embeddings(chunks, model_embeddings):
     embeddings = model.encode([chunk[3] for chunk in chunks])
     return embeddings, model
 
+# Función para crear embeddings con Azure OpenAI con pausas entre solicitudes
+def create_embeddings_AzureOpenAI(chunks,client,model_embeddings):
+    embeddings=[]
+    for chunk in chunks:
+        text=chunk[3]
+        response=client.embeddings.create(input=[text],model=model_embeddings)
+        embeddings.append(response.data[0].embedding)
+        print(f"\rEmbeddings creados: {round(len(embeddings)/2054*100,2)} %",end="")
+        time.sleep(1.1)
+    return embeddings
+
+
 # Función para guardar datos en Google Drive
-def save_data(chunks, embeddings, model, save_folder):
+def save_data(chunks, embeddings, save_folder):
     os.makedirs(save_folder, exist_ok=True)
     with open(os.path.join(save_folder, 'chunks_with_ids.pkl'), 'wb') as f:
         pickle.dump(chunks, f)
     with open(os.path.join(save_folder, 'embeddings.pkl'), 'wb') as f:
         pickle.dump(embeddings, f)
-    with open(os.path.join(save_folder, 'model.pkl'), 'wb') as f:
-        pickle.dump(model, f)
 
 # Función para cargar datos
 def load_data(save_folder):
