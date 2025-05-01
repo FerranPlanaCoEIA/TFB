@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from openai import AzureOpenAI
 from helpers.crear_indice import load_data
 from helpers.hacer_inferencia import get_similar_chunks
 from helpers.LLM_prompts import LLMs_system_prompts
@@ -10,6 +11,7 @@ load_dotenv()
 ###### Parámetros
 top_n=3
 question = "¿Es necesario saber mucho del Cosmere para poder leer alguno de los libros?"
+model_embeddings=os.getenv("AzureOpenAIembeddings_model")
 ######
 
 
@@ -19,11 +21,16 @@ save_folder = os.path.join(script_dir, 'Indice')
 
 
 # Cargar los datos procesados
-chunks, embeddings, model = load_data(save_folder)
+chunks, embeddings = load_data(save_folder)
 
 
 # Obtener los chunks más similares
-similar_chunks = get_similar_chunks(question, chunks, embeddings, model, top_n)
+client=AzureOpenAI(
+  api_key=os.getenv("AzureOpenAIembeddings_APIkey"),  
+  api_version=os.getenv("AzureOpenAIembeddings_APIversion"),
+  azure_endpoint=os.getenv("AzureOpenAIembeddings_endpoint"),
+)
+similar_chunks = get_similar_chunks(question, chunks, embeddings, client, model_embeddings, top_n)
 
 # Mostrar los resultados
 user_prompt=f"Pregunta: {question}\n\nConocimiento:\n"

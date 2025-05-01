@@ -1,12 +1,24 @@
 import os
+from dotenv import load_dotenv
 import pandas as pd
+import time
 from unidecode import unidecode
+from openai import AzureOpenAI
 from helpers.crear_indice import load_data
 from helpers.hacer_inferencia import get_similar_chunks
 
+load_dotenv()
+
 ###### Parámetros
 top_n=10
+model_embeddings=os.getenv("AzureOpenAIembeddings_model")
 ######
+
+client=AzureOpenAI(
+  api_key=os.getenv("AzureOpenAIembeddings_APIkey"),  
+  api_version=os.getenv("AzureOpenAIembeddings_APIversion"),
+  azure_endpoint=os.getenv("AzureOpenAIembeddings_endpoint"),
+) 
 
 print("Ejecutando...")
 
@@ -15,7 +27,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
 save_folder = os.path.join(script_dir, 'Indice')
 
 # Cargar los datos procesados
-chunks, embeddings, model = load_data(save_folder)
+chunks, embeddings = load_data(save_folder)
 
 
 # Test Automático (RAG)
@@ -39,7 +51,8 @@ LLMasajudge_array=[]
 LLMasajudge_valoracion_array=[]
 LLMasajudge_razonamiento_array=[]
 for k in range(len(PREGUNTA_array)):
-  similar_chunks=get_similar_chunks(PREGUNTA_array[k],chunks,embeddings,model,top_n)
+  similar_chunks=get_similar_chunks(PREGUNTA_array[k],chunks,embeddings,client,model_embeddings,top_n)
+  time.sleep(1.1)
 
   RESULTADORAG_intermedio_array=[]
   docname_intermedio_array=[]

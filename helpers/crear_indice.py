@@ -69,6 +69,4 @@ def load_data(save_folder):
         chunks = pickle.load(f)
     with open(os.path.join(save_folder, 'embeddings.pkl'), 'rb') as f:
         embeddings = pickle.load(f)
-    with open(os.path.join(save_folder, 'model.pkl'), 'rb') as f:
-        model = pickle.load(f)
-    return chunks, embeddings, model
+    return chunks, embeddings

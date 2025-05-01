@@ -7,9 +7,9 @@ from litellm import completion
 
 
 # Función para obtener los chunks más similares
-def get_similar_chunks(question, chunks, embeddings, model, top_n):
-    question_embedding = model.encode([question])
-    similarities = cosine_similarity(question_embedding, embeddings)[0]
+def get_similar_chunks(question, chunks, embeddings, client, model_embeddings, top_n):
+    question_embedding = client.embeddings.create(input = [question], model=model_embeddings).data[0].embedding
+    similarities = cosine_similarity([question_embedding], embeddings)[0]
     top_indices = np.argsort(similarities)[-top_n:][::-1]
     return [(chunks[i], similarities[i]) for i in top_indices]
 
