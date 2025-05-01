@@ -9,7 +9,7 @@ from helpers.hacer_inferencia import get_LLM_response
 load_dotenv()
 
 ###### Parámetros
-modelo_LLMasajudge="llama-3.3-70b-versatile"
+modelo_LLMasajudge="meta-llama/llama-3.3-70b-instruct:free"
 ######
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
@@ -18,7 +18,8 @@ ruta_output= os.path.join(script_dir, 'Output Test Automático.xlsx') # Path del
 
 df=pd.read_excel(ruta_input)
 
-APIkey_Groq_array=[os.getenv("LLMsAPIkey_Groq"),os.getenv("LLMsAPIkey_Groq_v2"),os.getenv("LLMsAPIkey_Groq_v3")]
+#APIkey_Groq_array=[os.getenv("LLMsAPIkey_Groq"),os.getenv("LLMsAPIkey_Groq_v2"),os.getenv("LLMsAPIkey_Groq_v3")]
+APIkey_Groq_array=[os.getenv("LLMsAPIkey"),os.getenv("LLMsAPIkey_v2"),os.getenv("LLMsAPIkey_v3"),os.getenv("LLMsAPIkey_v4"),os.getenv("LLMsAPIkey_v5"),os.getenv("LLMsAPIkey_v6"),os.getenv("LLMsAPIkey_v7")]
 
 for ii in range(len(APIkey_Groq_array)):
   APIkey_Groq=APIkey_Groq_array[ii]
@@ -43,7 +44,7 @@ for ii in range(len(APIkey_Groq_array)):
     if LLMasajudge_valoracion_array[k]=="ERROR" or pd.isna(LLMasajudge_valoracion_array[k]):
 
       user_prompt=f"Pregunta:\n{PREGUNTA_array[k]}\n\nRespuesta_Best:\n{RESPUESTABEST_array[k]}\n\nRespuesta_Generada:\n{Respuesta_array[k]}"
-      respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,modelo_LLMasajudge,user_prompt,system_prompt)
+      respuesta_LLM=get_LLM_response("OpenRouter",APIkey_Groq,modelo_LLMasajudge,user_prompt,system_prompt)
       #respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,modelo_LLMasajudge,user_prompt,system_prompt)
       LLMasajudge_array[k]=respuesta_LLM
 

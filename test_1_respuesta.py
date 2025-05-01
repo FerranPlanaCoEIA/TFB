@@ -8,7 +8,7 @@ from helpers.hacer_inferencia import get_LLM_response
 load_dotenv()
 
 ###### Parámetros
-modelo_respuesta="meta-llama/llama-4-scout:free"
+modelo_respuesta="meta-llama/llama-3.3-70b-instruct:free"
 ######
 
 APIkey=[os.getenv("LLMsAPIkey"),os.getenv("LLMsAPIkey_v2"),os.getenv("LLMsAPIkey_v3"),os.getenv("LLMsAPIkey_v4"),os.getenv("LLMsAPIkey_v5"),os.getenv("LLMsAPIkey_v6"),os.getenv("LLMsAPIkey_v7")]
