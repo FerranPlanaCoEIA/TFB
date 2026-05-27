@@ -1,9 +1,10 @@
 # TFB
 
-Chatbot RAG de la Coppermind (Cosmere) con:
+Chatbot RAG agéntico de la Coppermind (Cosmere) con:
 
 - Construcción de índice vectorial desde documentos Markdown.
 - Recuperación semántica de chunks relevantes.
+- Tool calling nativo para decidir cuándo buscar, repetir búsquedas o responder directamente.
 - Generación de respuesta con LLMs vía `langchain-openai` (`ChatOpenAI`).
 - Interfaz web en Streamlit.
 - Pipeline de evaluación automática (retrieval, fuentes y LLM-as-a-judge).
@@ -50,7 +51,7 @@ Componentes principales:
 - **Inferencia por script**: `hacer_inferencia.py`.
 - **Inferencia para UI**: `inferencia_interfaz.py`.
 - **Interfaz web**: `interfaz.py` (Streamlit).
-- **Orquestación conversacional**: `helpers/chatbot_orchestrator.py`.
+- **Orquestación agéntica con tools**: `helpers/agentic_chatbot_orchestrator.py`.
 - **Prompts del sistema**: `helpers/LLM_prompts.py`.
 - **LLM client + retrieval**: `helpers/hacer_inferencia.py`.
 - **Evaluación automática**: `test_0_retrieval.py`, `test_1_respuesta.py`, `test_2_fuentes.py`, `test_3_LLMasajudge.py`.
@@ -177,7 +178,7 @@ streamlit run interfaz.py
 
 Detalles:
 
-- Usa `inferencia_interfaz.py` y `helpers/chatbot_orchestrator.py` para resolver preguntas con memoria conversacional.
+- Usa `inferencia_interfaz.py` y `helpers/agentic_chatbot_orchestrator.py` para resolver preguntas con memoria conversacional y tool calling nativo.
 - Carga una imagen de fondo desde `Interfaz-Images/Image1.webp`.
 - Tema configurado en `.streamlit/config.toml`.
 

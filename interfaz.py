@@ -3,7 +3,7 @@ import base64
 from inferencia_interfaz import responder_chatbot
 
 #st.set_page_config(page_title="RAG de la Coppermind", page_icon="📖", layout="centered") # Con un icono
-st.set_page_config(page_title="Chatbot RAG de la Coppermind", page_icon="Interfaz-Images/GhostBloods.jpg", layout="centered") # Con una foto
+st.set_page_config(page_title="Chatbot RAG agéntico de la Coppermind", page_icon="Interfaz-Images/GhostBloods.jpg", layout="centered") # Con una foto
 
 # Función para cargar una imagen en formato base64
 def cargar_imagen_base64(ruta_imagen):
@@ -46,7 +46,7 @@ def aplicar_estilos():
 aplicar_estilos()
 
 # Título de la aplicación
-st.title("Chatbot RAG de la Coppermind")
+st.title("Chatbot RAG agéntico de la Coppermind")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -61,7 +61,7 @@ def nueva_conversacion():
 
 header_col, action_col = st.columns([4, 1])
 with header_col:
-    st.caption("Haz preguntas enlazadas y el sistema mantendrá el contexto de la conversación.")
+    st.caption("Haz preguntas enlazadas: el agente decidirá si necesita buscar, repetir búsquedas o responder sin retrieval.")
 with action_col:
     if st.button("Nueva conversación"):
         nueva_conversacion()
