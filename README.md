@@ -54,7 +54,7 @@ Componentes principales:
 - **Orquestación agéntica con tools**: `helpers/agentic_chatbot_orchestrator.py`.
 - **Prompts del sistema**: `helpers/LLM_prompts.py`.
 - **LLM client + retrieval**: `helpers/hacer_inferencia.py`.
-- **Evaluación automática**: `test_0_retrieval.py`, `test_1_respuesta.py`, `test_2_fuentes.py`, `test_3_LLMasajudge.py`.
+- **Evaluación automática**: `GS_0_retrieval.py`, `GS_1_respuesta.py`, `GS_2_fuentes.py`, `GS_3_LLMasajudge.py`.
 
 ## Estructura del repositorio
 
@@ -80,10 +80,10 @@ TFB/
 ├─ hacer_inferencia.py
 ├─ inferencia_interfaz.py
 ├─ interfaz.py
-├─ test_0_retrieval.py
-├─ test_1_respuesta.py
-├─ test_2_fuentes.py
-├─ test_3_LLMasajudge.py
+├─ GS_0_retrieval.py
+├─ GS_1_respuesta.py
+├─ GS_2_fuentes.py
+├─ GS_3_LLMasajudge.py
 ├─ requirements.txt
 ├─ requirements_mac.txt
 └─ freeze_GoogleColab.txt
@@ -195,7 +195,7 @@ Secuencia recomendada:
 1. Retrieval:
 
 ```bash
-python test_0_retrieval.py
+python GS_0_retrieval.py
 ```
 
 Genera/actualiza en `Output Test Automático.xlsx`:
@@ -208,7 +208,7 @@ Genera/actualiza en `Output Test Automático.xlsx`:
 2. Generación de respuesta:
 
 ```bash
-python test_1_respuesta.py
+python GS_1_respuesta.py
 ```
 
 Actualiza columna:
@@ -218,7 +218,7 @@ Actualiza columna:
 3. Validación de fuentes citadas:
 
 ```bash
-python test_2_fuentes.py
+python GS_2_fuentes.py
 ```
 
 Actualiza columna:
@@ -228,7 +228,7 @@ Actualiza columna:
 4. Evaluación LLM-as-a-judge:
 
 ```bash
-python test_3_LLMasajudge.py
+python GS_3_LLMasajudge.py
 ```
 
 Actualiza columnas:
