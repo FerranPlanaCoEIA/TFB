@@ -2,6 +2,63 @@
 
 Guía breve para agentes que trabajen en este repositorio.
 
+## Política general de tests
+
+Estas instrucciones están escritas para poder copiarse a cualquier repositorio sin depender de una tecnología concreta.
+
+### Regla principal
+
+**Todo cambio en código debe ir acompañado de los tests necesarios y no se considera terminado hasta que esos tests y la suite aplicable del repositorio pasen.**
+
+### Qué hacer siempre ante cualquier cambio
+
+1. Identificar qué comportamiento cambia, se corrige, se elimina o se añade.
+2. Crear tests nuevos para el comportamiento nuevo o corregido.
+3. Actualizar los tests existentes cuando el contrato, la salida esperada o el flujo hayan cambiado de forma intencionada.
+4. Eliminar los tests que hayan quedado obsoletos solo si ya no validan comportamiento real del sistema.
+5. Comprobar que la cobertura de tests sigue siendo coherente con el cambio realizado.
+6. Ejecutar todos los tests afectados y también la suite global relevante del repositorio.
+7. No dar el trabajo por terminado si queda algún test fallando por cambios introducidos en la tarea.
+
+### Qué tipos de tests deben mantenerse
+
+Siempre que tenga sentido, cubrir los cambios en los mismos niveles en los que hemos trabajado aquí:
+
+- **tests unitarios**: validan funciones, clases o módulos aislados
+- **tests de integración**: validan la colaboración entre módulos, adaptadores, base de datos, filesystem, APIs simuladas o similares
+- **tests de aceptación**: validan el comportamiento observable de extremo a extremo desde el punto de vista del usuario o del caso de uso
+
+### Criterio para crear, modificar o eliminar tests
+
+- Si añades una capacidad nueva, añade tests nuevos.
+- Si corriges un bug, añade o ajusta un test que falle antes del cambio y pase después.
+- Si refactorizas sin cambiar comportamiento, actualiza los tests solo si el acoplamiento anterior era excesivo o si cambia el punto correcto de validación.
+- Si eliminas funcionalidad, elimina o adapta los tests que dependían de ella y deja tests que validen el nuevo comportamiento esperado.
+- Si cambias contratos públicos, actualiza también los tests de integración y aceptación, no solo los unitarios.
+
+### Cómo deben diseñarse los tests
+
+- Deben ser claros, deterministas y mantenibles.
+- Deben validar comportamiento, no implementación accidental.
+- Deben evitar dependencias externas innecesarias.
+- Deben usar dobles de prueba, fakes, mocks o stubs cuando convenga para aislar red, credenciales, servicios externos, reloj, sistema de archivos o procesos costosos.
+- Deben ejecutarse con el framework de tests ya adoptado por el repositorio; si no existe uno, usar la opción estándar o mínima del ecosistema.
+
+### Regla de cierre
+
+Antes de cerrar una tarea:
+
+- ejecutar los tests nuevos o modificados
+- ejecutar la suite completa relevante del repositorio
+- confirmar que no quedan tests obsoletos por el cambio realizado
+- actualizar documentación de testing si el modo de ejecución ha cambiado
+
+### Qué no contar como tests
+
+- En este repositorio, **solo se consideran tests los archivos cuyo nombre empieza por `test_`**.
+- Para validar cambios, ejecutar únicamente la suite formada por archivos `test_*.py`.
+- No tratar como tests los archivos que no sigan esa convención de nombre, aunque estén relacionados con evaluación, benchmarking, generación de datos o análisis.
+
 ## 1. Qué es este proyecto
 
 Repositorio de un **chatbot RAG agéntico sobre el Cosmere** con:
@@ -24,7 +81,7 @@ La versión de Python esperada es **3.11.11**.
 - `helpers\hacer_inferencia.py`: retrieval, cliente LLM y utilidades.
 - `helpers\agentic_chatbot_orchestrator.py`: flujo agéntico con tool calling.
 - `helpers\chat_memory.py`: historial reciente y resumen conversacional.
-- `GS_0_retrieval.py` a `GS_3_LLMasajudge.py`: evaluación incremental.
+- `GS_0_retrieval.py` a `GS_3_LLMasajudge.py`: scripts auxiliares del proyecto.
 
 ## 3. Contratos que no conviene romper
 
@@ -88,6 +145,12 @@ python GS_2_fuentes.py
 python GS_3_LLMasajudge.py
 ```
 
+Suite de tests automática que sí debe usarse para validar cambios:
+
+```powershell
+python -m unittest discover -v -s tests -p "test_*.py" -t .
+```
+
 ## 6. Cómo tocar el código sin romper el proyecto
 
 - Si cambias lógica de chunking, embeddings o carga de datos, asume que hay que **regenerar `Indice\`**.
@@ -95,6 +158,8 @@ python GS_3_LLMasajudge.py
 - Si cambias retrieval o citación, revisa también `GS_0_retrieval.py` y `GS_2_fuentes.py`.
 - Si cambias prompts o decisiones del agente, mira `helpers\LLM_prompts.py` y el límite de iteraciones del orquestador.
 - Mantén los mensajes, variables y nombres en español cuando el código ya siga ese patrón.
+- Además, aplica siempre la **Política general de tests** de este documento: añadir, actualizar o eliminar tests según el cambio y comprobar que todos los aplicables pasan.
+- Para validar cambios, ejecutar la suite automática de `unittest`, es decir, los archivos `test_*.py`.
 
 ## 7. Convenciones útiles
 
@@ -110,11 +175,13 @@ python GS_3_LLMasajudge.py
 2. Verificar `.env`.
 3. Probar `python hacer_inferencia.py`.
 4. Probar `streamlit run interfaz.py`.
-5. Ejecutar el bloque de tests que corresponda al área modificada.
+5. Ejecutar la suite de tests automática y los tests específicos del área modificada.
 
 ## 9. Qué debe incluir una buena modificación
 
 - mantener el flujo: pregunta -> retrieval -> respuesta -> referencias -> renderizado
 - respetar el contrato del orquestador
 - actualizar la documentación si cambia el modo de uso
-- validar con el script o test más cercano al área tocada
+- añadir, actualizar o eliminar tests según el impacto real del cambio
+- ejecutar los tests del área tocada y la suite global relevante antes de dar el trabajo por cerrado
+- no usar archivos que no empiecen por `test_` como sustituto de la suite de tests

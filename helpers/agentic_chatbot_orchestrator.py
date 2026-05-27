@@ -27,6 +27,7 @@ MAX_TOOL_ITERATIONS = 4
 MAX_ACCUMULATED_RESULTS = 8
 MODEL_RESPONSE = "gpt-5.1"
 EMPTY_SUMMARY = "Sin contexto previo relevante."
+INSUFFICIENT_INFORMATION_RESPONSE = "Lo siento, no puedo responderte a esa pregunta"
 
 
 @lru_cache(maxsize=1)
@@ -226,7 +227,7 @@ def generate_agentic_chatbot_response(question, conversation_history, conversati
             HumanMessage(
                 content=(
                     "Ya has hecho suficientes pasos. Responde ahora al usuario con la información disponible. "
-                    "Si no basta, di exactamente: Lo siento, no puedo responderte a esa pregunta"
+                    f'Si no basta, di exactamente: {INSUFFICIENT_INFORMATION_RESPONSE}'
                 )
             )
         )
@@ -235,7 +236,11 @@ def generate_agentic_chatbot_response(question, conversation_history, conversati
 
     _print_tool_log(question, tool_queries)
 
-    if accumulated_results and "[[" not in raw_response:
+    if (
+        accumulated_results
+        and "[[" not in raw_response
+        and raw_response.strip() not in {"ERROR", INSUFFICIENT_INFORMATION_RESPONSE}
+    ):
         reference_lines = []
         seen = set()
         for result in accumulated_results:

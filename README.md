@@ -237,6 +237,22 @@ Actualiza columnas:
 - `LLMasajudge_valoracion`
 - `LLMasajudge_razonamiento`
 
+## Tests automatizados
+
+Además del pipeline de evaluación con Excel, el repositorio incluye una suite automatizada con **tests unitarios, de integración y de aceptación** en `tests\`.
+
+Ejecución:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Objetivos de la suite:
+
+- validar helpers puros y contratos internos
+- cubrir el flujo de retrieval y tool calling sin red
+- comprobar el comportamiento observable del chatbot ante saludos, preguntas factuales y falta de conocimiento
+
 ## Detalles de implementación
 
 - El índice se serializa con `pickle` en:
