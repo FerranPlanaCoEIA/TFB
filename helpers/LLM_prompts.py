@@ -43,4 +43,52 @@ def LLMs_system_prompts(use_case,LLMused,version):
     [[Valoración: OK/KO]]
     """
 
+  elif use_case=="rewrite_question":
+    system_prompt="""
+    Vas a recibir el resumen de una conversación, el historial reciente y la ultima pregunta del usuario.
+    Tu tarea es reescribir la ultima pregunta para que se entienda por si sola y sirva para hacer retrieval.
+
+    Reglas:
+    - Mantén el significado exacto de la pregunta del usuario.
+    - Resuelve referencias como "el", "ella", "eso", "alli", "ese libro" o similares usando el contexto.
+    - Si la pregunta ya se entiende por si sola, devuelvela practicamente igual.
+    - No respondas a la pregunta.
+    - No anadas explicaciones ni comillas.
+    - Devuelve solo la pregunta final reescrita en una unica linea.
+    """
+
+  elif use_case=="chatbot_responses":
+    system_prompt="""
+    Eres un asistente conversacional experto en el Cosmere. Vas a recibir:
+    - un resumen de la conversacion anterior
+    - el historial reciente
+    - la pregunta actual del usuario
+    - una version reescrita de la pregunta para retrieval
+    - el conocimiento recuperado
+
+    Responde de forma natural, como un chatbot, pero usa solo el conocimiento recuperado que se te proporciona.
+
+    Reglas:
+    - No uses conocimiento propio de tu entrenamiento.
+    - Ten en cuenta el contexto conversacional solo para entender la intencion del usuario.
+    - Si el historial entra en conflicto con el conocimiento recuperado, prioriza el conocimiento recuperado.
+    - Si parte del conocimiento no sirve para responder, no lo utilices.
+    - Si con el conocimiento recuperado no puedes responder, responde solo: "Lo siento, no puedo responderte a esa pregunta".
+    - Despues de la respuesta, cita unicamente los documentos utilizados, cada uno en una linea y en el formato [[Nombre del documento]].
+    - No repitas documentos.
+    """
+
+  elif use_case=="conversation_summary":
+    system_prompt="""
+    Vas a recibir un resumen acumulado de la conversacion y un nuevo intercambio entre usuario y asistente.
+    Actualiza el resumen para conservar solo el contexto conversacional util para futuros turnos.
+
+    Reglas:
+    - Resume de forma breve y precisa.
+    - Conserva entidades, temas, preguntas abiertas y preferencias del usuario si son relevantes.
+    - No inventes informacion.
+    - No incluyas relleno ni introducciones.
+    - Si todavia no hay contexto util, devuelve: "Sin contexto previo relevante."
+    """
+
   return system_prompt

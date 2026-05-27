@@ -1,9 +1,9 @@
 import streamlit as st
 import base64
-from inferencia_interfaz import inferencia_interfaz
+from inferencia_interfaz import responder_chatbot
 
 #st.set_page_config(page_title="RAG de la Coppermind", page_icon="📖", layout="centered") # Con un icono
-st.set_page_config(page_title="RAG de la Coppermind", page_icon="Interfaz-Images/GhostBloods.jpg", layout="centered") # Con una foto
+st.set_page_config(page_title="Chatbot RAG de la Coppermind", page_icon="Interfaz-Images/GhostBloods.jpg", layout="centered") # Con una foto
 
 # Función para cargar una imagen en formato base64
 def cargar_imagen_base64(ruta_imagen):
@@ -31,13 +31,10 @@ def aplicar_estilos():
         #MainMenu {{visibility: hidden;}}  /* Oculta la barra superior */
         footer {{visibility: hidden;}}    /* Oculta el footer */
         header {{visibility: hidden;}}    /* Oculta el header */
-        .respuesta-cuadro {{
-            background-color: #464646; /* Color del cuadro de texto */
-            color: #ffffff;
-            padding: 20px; /* Espaciado interno */
-            border-radius: 5px; /* Bordes redondeados */
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Sombra */
-            text-align: justify; /* Justificar el texto */
+        .stChatMessage {{
+            background-color: rgba(46, 46, 46, 0.82);
+            border-radius: 12px;
+            padding: 0.35rem;
         }}
         </style>
         """,
@@ -49,31 +46,56 @@ def aplicar_estilos():
 aplicar_estilos()
 
 # Título de la aplicación
-st.title("RAG de la Coppermind")
+st.title("Chatbot RAG de la Coppermind")
 
-# Estado inicial de la respuesta
-if "respuesta" not in st.session_state:
-    st.session_state.respuesta = ""
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# Función para manejar el envío
-def manejar_input():
-    texto = st.session_state.texto
-    aplicar_estilos()
-    if texto.strip():
-        with st.spinner("Generando respuesta..."):  # Mostrar mensaje mientras se genera la respuesta
-            st.session_state.respuesta = inferencia_interfaz(texto)
-    
+if "conversation_summary" not in st.session_state:
+    st.session_state.conversation_summary = ""
 
-# Campo de texto con envío al presionar Enter
-st.text_input("Haz una pregunta sobre el Cosmere:", key="texto", on_change=manejar_input, placeholder="")
+def nueva_conversacion():
+    st.session_state.messages = []
+    st.session_state.conversation_summary = ""
 
-# Botón de envío alternativo
-if st.button("Enviar"):
-    manejar_input()
 
-# Mostrar la respuesta dentro de un cuadro gris si existe
-if st.session_state.respuesta:
-    st.markdown(
-        f"<div class='respuesta-cuadro'>{st.session_state.respuesta}</div>",
-        unsafe_allow_html=True
+header_col, action_col = st.columns([4, 1])
+with header_col:
+    st.caption("Haz preguntas enlazadas y el sistema mantendrá el contexto de la conversación.")
+with action_col:
+    if st.button("Nueva conversación"):
+        nueva_conversacion()
+        st.rerun()
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message.get("display_content", message["content"]))
+
+prompt = st.chat_input("Haz una pregunta sobre el Cosmere")
+if prompt:
+    previous_history = [
+        {"role": message["role"], "content": message["content"]}
+        for message in st.session_state.messages
+    ]
+
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        with st.spinner("Generando respuesta..."):
+            result = responder_chatbot(
+                prompt,
+                previous_history,
+                st.session_state.conversation_summary,
+            )
+        st.markdown(result["assistant_display_content"])
+
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "content": result["assistant_content"],
+            "display_content": result["assistant_display_content"],
+        }
     )
+    st.session_state.conversation_summary = result["conversation_summary"]

@@ -50,6 +50,7 @@ Componentes principales:
 - **Inferencia por script**: `hacer_inferencia.py`.
 - **Inferencia para UI**: `inferencia_interfaz.py`.
 - **Interfaz web**: `interfaz.py` (Streamlit).
+- **Orquestación conversacional**: `helpers/chatbot_orchestrator.py`.
 - **Prompts del sistema**: `helpers/LLM_prompts.py`.
 - **LLM client + retrieval**: `helpers/hacer_inferencia.py`.
 - **Evaluación automática**: `test_0_retrieval.py`, `test_1_respuesta.py`, `test_2_fuentes.py`, `test_3_LLMasajudge.py`.
@@ -176,7 +177,7 @@ streamlit run interfaz.py
 
 Detalles:
 
-- Usa `inferencia_interfaz.py` para resolver preguntas.
+- Usa `inferencia_interfaz.py` y `helpers/chatbot_orchestrator.py` para resolver preguntas con memoria conversacional.
 - Carga una imagen de fondo desde `Interfaz-Images/Image1.webp`.
 - Tema configurado en `.streamlit/config.toml`.
 
