@@ -11,8 +11,8 @@ load_dotenv()
 def inferencia_interfaz(question):
 
     ###### Parámetros
-    top_n=15
-    model_response="meta-llama/llama-4-maverick:free"
+    top_n=10
+    model_response="gpt-5.1"
     ######
 
 
@@ -35,10 +35,8 @@ def inferencia_interfaz(question):
         name_doc=f"{doc_name[:-3].replace('es.coppermind.net__wiki_','').replace('_',' ')}"
         user_prompt+=f"[[{name_doc}]]: {chunk_text}\n"
 
-    APIkey_OpenRouter=os.getenv("LLMsAPIkey_v2")
-
     system_prompt=LLMs_system_prompts("elaborate_responses","","")
-    respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,model_response,user_prompt,system_prompt)
+    respuesta_LLM=get_LLM_response(model_response,user_prompt,system_prompt)
 
     patron=r"\[\[.*?\]\]"
     referencias_array=re.findall(patron,respuesta_LLM)
@@ -51,4 +49,3 @@ def inferencia_interfaz(question):
     respuesta_LLM=re.sub(patron,"",respuesta_LLM).strip()+referencias
 
     return respuesta_LLM
-

@@ -1,8 +1,10 @@
-from sklearn.metrics.pairwise import cosine_similarity
+import os
+
 import numpy as np
-import requests
-import json
-from litellm import completion
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from openai import APIConnectionError, APIError, APITimeoutError, RateLimitError
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 
@@ -15,37 +17,38 @@ def get_similar_chunks(question, chunks, embeddings, model, top_n):
 
 
 # Función para obtener la respuesta de un LLM
-def get_LLM_response(proveedor,apikey,endpoint_model,user_prompt,system_prompt):
+def get_LLM_response(endpoint_model, user_prompt, system_prompt, temperature=0):
+  endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+  api_key = os.getenv("AZURE_OPENAI_API_KEY")
+
+  if not endpoint:
+    raise RuntimeError("Falta la variable de entorno AZURE_OPENAI_ENDPOINT.")
+  if not api_key:
+    raise RuntimeError("Falta la variable de entorno AZURE_OPENAI_API_KEY.")
+
+  llm = ChatOpenAI(
+    model=endpoint_model,
+    api_key=api_key,
+    base_url=endpoint,
+    temperature=temperature,
+  )
+
+  messages = [
+    SystemMessage(content=system_prompt),
+    HumanMessage(content=user_prompt),
+  ]
 
   try:
-    response = completion(
-      model=proveedor.lower()+"/"+endpoint_model,
-      messages=[
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
-      ],
-      api_key=apikey,
-      temperature=0,
-      presence_penalty=0,
+    response = llm.invoke(messages)
+    if isinstance(response.content, str):
+      return response.content
+    if isinstance(response.content, list):
+      return "".join(
+        block.get("text", "") if isinstance(block, dict) else str(block)
+        for block in response.content
       )
-    return response.choices[0].message.content
-  
-  except requests.exceptions.RequestException as e:
-    # Manejar errores de red o del servidor
-    print(f"Error de red o del servidor: {e}")
-    return "ERROR"
+    raise TypeError(f"Tipo de respuesta no soportado: {type(response.content)!r}")
 
-  except (KeyError, IndexError) as e:
-    # Manejar errores de estructura de respuesta inesperada
-    print(f"Error en la estructura de la respuesta: {e}")
-    return "ERROR"
-
-  except json.JSONDecodeError as e:
-    # Manejar errores de decodificación JSON
-    print(f"Error al decodificar la respuesta JSON: {e}")
-    return "ERROR"
-
-  except Exception as e:
-    # Capturar cualquier otro error no previsto
-    print(f"Error inesperado: {e}")
+  except (APIConnectionError, APITimeoutError, APIError, RateLimitError) as e:
+    print(f"Error al llamar a Azure OpenAI: {e}")
     return "ERROR"

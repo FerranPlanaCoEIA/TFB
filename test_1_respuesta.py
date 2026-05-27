@@ -1,64 +1,49 @@
 import os
 from dotenv import load_dotenv
 import pandas as pd
-import time
 from helpers.LLM_prompts import LLMs_system_prompts
 from helpers.hacer_inferencia import get_LLM_response
 
 load_dotenv()
 
 ###### Parámetros
-modelo_respuesta="meta-llama/llama-4-scout:free"
+modelo_respuesta="gpt-5.1"
 ######
-
-APIkey=[os.getenv("LLMsAPIkey"),os.getenv("LLMsAPIkey_v2"),os.getenv("LLMsAPIkey_v3"),os.getenv("LLMsAPIkey_v4"),os.getenv("LLMsAPIkey_v5"),os.getenv("LLMsAPIkey_v6"),os.getenv("LLMsAPIkey_v7")]
-#APIkey=[os.getenv("LLMsAPIkey_OpenAI"),os.getenv("LLMsAPIkey_OpenAI_v2"),os.getenv("LLMsAPIkey_OpenAI_v3"),os.getenv("LLMsAPIkey_OpenAI_v4"),os.getenv("LLMsAPIkey_OpenAI_v5")]
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
 ruta_input= os.path.join(script_dir, 'Output Test Automático.xlsx') # Path del input de **este** test (output del anterior)
 ruta_output= os.path.join(script_dir, 'Output Test Automático.xlsx') # Path del output del test
 
-for niter_APIkey in range(len(APIkey)):
-  APIkey_OpenRouter=APIkey[niter_APIkey]
-  print(niter_APIkey+1)
+df=pd.read_excel(ruta_input)
 
-  df=pd.read_excel(ruta_input)
+Respuesta_userprompt_array=df["RESPUESTA_USERPROMPT"].tolist()
+Respuesta_array=df["RESPUESTA"].tolist()
 
-  #APIkey_Groq=os.getenv("LLMsAPIkey_Groq")
-  APIkey_Groq=os.getenv("LLMsAPIkey_Groq_v2")
+system_prompt=LLMs_system_prompts("elaborate_responses","","")
 
-  Respuesta_userprompt_array=df["RESPUESTA_USERPROMPT"].tolist()
-  Respuesta_array=df["RESPUESTA"].tolist()
+for k in range(len(Respuesta_userprompt_array)):
+  if Respuesta_array[k]=="ERROR" or pd.isna(Respuesta_array[k]):
+    user_prompt=Respuesta_userprompt_array[k]
+    respuesta_LLM=get_LLM_response(modelo_respuesta,user_prompt,system_prompt)
+    print(respuesta_LLM)
+    Respuesta_array[k]=respuesta_LLM
 
-  system_prompt=LLMs_system_prompts("elaborate_responses","","")
+    df["RESPUESTA"]=Respuesta_array
+    # Output del Test Automático
+    df.to_excel(ruta_output,index=False)
+    print(f'Archivo Excel guardado en: {ruta_output}')
 
-  for k in range(len(Respuesta_userprompt_array)):
-    if Respuesta_array[k]=="ERROR" or pd.isna(Respuesta_array[k]):
-      user_prompt=Respuesta_userprompt_array[k]
-      respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,modelo_respuesta,user_prompt,system_prompt)
-      #respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,modelo_respuesta,user_prompt,system_prompt)
-      #respuesta_LLM=get_LLM_response("OpenAI",APIkey_OpenRouter,modelo_respuesta,user_prompt,system_prompt)
-      print(respuesta_LLM)
-      Respuesta_array[k]=respuesta_LLM
+    if respuesta_LLM=="ERROR":
+      print("Rate limit alcanzado")
+      break
 
-      df["RESPUESTA"]=Respuesta_array
-      # Output del Test Automático
-      df.to_excel(ruta_output,index=False)
-      print(f'Archivo Excel guardado en: {ruta_output}')
-
-      if respuesta_LLM=="ERROR":
-        print("Rate limit alcanzado")
-        break
-
-      #time.sleep(2)
+    #time.sleep(2)
 
 
-  df["RESPUESTA"]=Respuesta_array
+df["RESPUESTA"]=Respuesta_array
 
 
-  # Output del Test Automático
-  df.to_excel(ruta_output,index=False)
-  print(f'Archivo Excel guardado en: {ruta_output}')
-
-
+# Output del Test Automático
+df.to_excel(ruta_output,index=False)
+print(f'Archivo Excel guardado en: {ruta_output}')
 

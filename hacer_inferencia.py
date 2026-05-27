@@ -8,8 +8,9 @@ from helpers.hacer_inferencia import get_LLM_response
 load_dotenv()
 
 ###### Parámetros
-top_n=3
+top_n=10
 question = "¿Es necesario saber mucho del Cosmere para poder leer alguno de los libros?"
+model_response="gpt-5.1"
 ######
 
 
@@ -37,15 +38,6 @@ for i, (chunk, similarity) in enumerate(similar_chunks, 1):
     user_prompt+=f"{name_doc}: {chunk_text}\n"
 
 
-
-
-APIkey_OpenRouter=os.getenv("LLMsAPIkey_v7")
-APIkey_Groq=os.getenv("LLMsAPIkey_Groq")
-APIkey_OpenAI=os.getenv("LLMsAPIkey_OpenAI_v5")
-
 system_prompt=LLMs_system_prompts("elaborate_responses","","")
-respuesta_LLM=get_LLM_response("OpenRouter",APIkey_OpenRouter,"meta-llama/llama-4-scout:free",user_prompt,system_prompt)
-#respuesta_LLM=get_LLM_response("Groq",APIkey_Groq,"llama-3.3-70b-versatile",user_prompt,system_prompt)
-#respuesta_LLM=get_LLM_response("OpenAI",APIkey_OpenAI,"gpt-4o-mini",user_prompt,system_prompt)
+respuesta_LLM=get_LLM_response(model_response,user_prompt,system_prompt)
 print(respuesta_LLM)
-
