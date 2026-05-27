@@ -15,4 +15,5 @@ Base de datos_Cosmere/*.html
 
 Documentacion/*.html
 Documentacion/*md
-helpers/__pycache__
+__pycache__/
+*.py[cod]
