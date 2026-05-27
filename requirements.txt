@@ -8,5 +8,6 @@ pickleshare==0.7.5
 jsonpickle==4.0.2
 dotenv
 requests==2.32.3
-litellm==1.65.4.post1
+python-certifi-win32; platform_system == "Windows"
+langchain-openai
 streamlit==1.44.1

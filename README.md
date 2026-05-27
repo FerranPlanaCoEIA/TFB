@@ -4,7 +4,7 @@ Chatbot RAG de la Coppermind (Cosmere) con:
 
 - Construcción de índice vectorial desde documentos Markdown.
 - Recuperación semántica de chunks relevantes.
-- Generación de respuesta con LLMs vía LiteLLM.
+- Generación de respuesta con LLMs vía `langchain-openai` (`ChatOpenAI`).
 - Interfaz web en Streamlit.
 - Pipeline de evaluación automática (retrieval, fuentes y LLM-as-a-judge).
 
@@ -39,7 +39,7 @@ Flujo general:
 3. Se guarda un índice local serializado (`Indice/`).
 4. Ante una pregunta, se recuperan los chunks más similares por similitud coseno.
 5. Se construye un prompt con conocimiento recuperado.
-6. Se consulta un LLM (OpenRouter, Groq u OpenAI vía LiteLLM).
+6. Se consulta un LLM mediante `langchain-openai` y un endpoint compatible con Azure OpenAI.
 7. Se devuelve una respuesta con referencias.
 
 ## Arquitectura
@@ -91,7 +91,7 @@ TFB/
 
 - Python 3.11.11
 - Pip actualizado
-- Acceso a APIs LLM (según proveedor elegido)
+- Acceso a un endpoint compatible con OpenAI/Azure OpenAI
 
 Dependencias principales (ver `requirements.txt`):
 
@@ -102,7 +102,8 @@ Dependencias principales (ver `requirements.txt`):
 - `openpyxl`
 - `python-dotenv`/`dotenv`
 - `requests`
-- `litellm`
+- `python-certifi-win32` en Windows
+- `langchain-openai`
 - `streamlit`
 
 ## Instalación
@@ -117,48 +118,22 @@ pip install -r requirements.txt
 
 Para Mac existe un listado alternativo en `requirements_mac.txt`.
 
+En Windows corporativo, `requirements.txt` incluye `python-certifi-win32` para evitar problemas de certificados al descargar modelos de Hugging Face desde el entorno virtual.
+
 ## Configuración de entorno
 
-Este proyecto usa variables de entorno para API keys. Crea un archivo `.env` en la raíz del proyecto.
+Este proyecto usa variables de entorno para configurar el acceso al modelo chat. Crea un archivo `.env` en la raíz del proyecto.
 
 Variables observadas en el código:
 
-- `LLMsAPIkey`
-- `LLMsAPIkey_v2`
-- `LLMsAPIkey_v3`
-- `LLMsAPIkey_v4`
-- `LLMsAPIkey_v5`
-- `LLMsAPIkey_v6`
-- `LLMsAPIkey_v7`
-- `LLMsAPIkey_Groq`
-- `LLMsAPIkey_Groq_v2`
-- `LLMsAPIkey_Groq_v3`
-- `LLMsAPIkey_OpenAI`
-- `LLMsAPIkey_OpenAI_v2`
-- `LLMsAPIkey_OpenAI_v3`
-- `LLMsAPIkey_OpenAI_v4`
-- `LLMsAPIkey_OpenAI_v5`
+- `AZURE_OPENAI_ENDPOINT`
+- `AZURE_OPENAI_API_KEY`
 
 Ejemplo:
 
 ```env
-LLMsAPIkey=...
-LLMsAPIkey_v2=...
-LLMsAPIkey_v3=...
-LLMsAPIkey_v4=...
-LLMsAPIkey_v5=...
-LLMsAPIkey_v6=...
-LLMsAPIkey_v7=...
-
-LLMsAPIkey_Groq=...
-LLMsAPIkey_Groq_v2=...
-LLMsAPIkey_Groq_v3=...
-
-LLMsAPIkey_OpenAI=...
-LLMsAPIkey_OpenAI_v2=...
-LLMsAPIkey_OpenAI_v3=...
-LLMsAPIkey_OpenAI_v4=...
-LLMsAPIkey_OpenAI_v5=...
+AZURE_OPENAI_ENDPOINT=...
+AZURE_OPENAI_API_KEY=...
 ```
 
 ## Cómo usar el proyecto
@@ -189,7 +164,7 @@ Parámetros editables en `hacer_inferencia.py`:
 
 - `question`
 - `top_n`
-- modelo de respuesta y proveedor
+- modelo de respuesta
 
 ### 3) Interfaz web (Streamlit)
 
@@ -267,7 +242,7 @@ Actualiza columnas:
   - `Indice/embeddings.pkl`
   - `Indice/model.pkl`
 - Recuperación por similitud coseno (`sklearn.metrics.pairwise.cosine_similarity`).
-- Cliente LLM unificado con `litellm.completion`.
+- Cliente LLM unificado con `langchain_openai.ChatOpenAI`.
 - El prompt del modo `elaborate_responses` fuerza uso exclusivo del contexto recuperado.
 - En la interfaz, las referencias `[[...]]` devueltas por el LLM se convierten a enlaces HTML de la wiki.
 
@@ -278,14 +253,18 @@ Actualiza columnas:
 	- Solución: ejecuta primero `python crear_indice.py`.
 
 2. **Respuestas con `ERROR`**
-	- Causa probable: API key inválida, rate limit o proveedor no disponible.
-	- Solución: revisa `.env` y alterna entre claves/versiones de key configuradas.
+	- Causa probable: `AZURE_OPENAI_API_KEY` inválida, `AZURE_OPENAI_ENDPOINT` incorrecto o rate limit del servicio.
+	- Solución: revisa `.env` y valida la conectividad con tu endpoint compatible con Azure OpenAI.
 
 3. **Dependencias fallan al instalar**
 	- Causa probable: versión de Python distinta a 3.11.11.
 	- Solución: recrea el entorno con la versión indicada.
 
-4. **No aparece fondo/recursos en Streamlit**
+4. **Error de certificados al crear embeddings en Windows**
+	- Causa probable: el entorno virtual no confía en el certificado raíz corporativo al descargar modelos desde Hugging Face.
+	- Solución: reinstala dependencias con `pip install -r requirements.txt` para incluir `python-certifi-win32`.
+
+5. **No aparece fondo/recursos en Streamlit**
 	- Causa probable: ruta incorrecta de imagen o ejecución fuera de la raíz.
 	- Solución: ejecuta `streamlit run interfaz.py` desde la carpeta raíz del repo.
 
