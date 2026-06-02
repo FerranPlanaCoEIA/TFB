@@ -120,6 +120,25 @@ class HacerInferenciaTests(unittest.TestCase):
         self.assertTrue(np.array_equal(embedding, np.array([[0.2, 0.8]])))
         self.assertIs(resolved_model, fallback_model)
 
+    def test_encode_question_uses_patched_model_when_second_attempt_succeeds(self):
+        class BrokenThenFixedModel:
+            def __init__(self):
+                self._attempts = 0
+                self._modules = {}
+
+            def encode(self, _texts):
+                self._attempts += 1
+                if self._attempts == 1:
+                    raise AttributeError("broken first pass")
+                return np.array([[0.4, 0.6]])
+
+        model = BrokenThenFixedModel()
+
+        embedding, resolved_model = hi._encode_question("Roshar", model)
+
+        self.assertTrue(np.array_equal(embedding, np.array([[0.4, 0.6]])))
+        self.assertIs(resolved_model, model)
+
     def test_get_similar_chunks_returns_results_sorted_by_similarity(self):
         chunks, embeddings, model = sample_index_data()
 
@@ -153,6 +172,17 @@ class HacerInferenciaTests(unittest.TestCase):
         self.assertIn("[[Hoid]]: Hoid aparece en muchas historias.", knowledge)
         self.assertTrue(serialized.endswith("..."))
 
+    def test_build_knowledge_block_honors_max_results(self):
+        search_results = [
+            {"display_name": "Hoid", "chunk_text": "A"},
+            {"display_name": "Roshar", "chunk_text": "B"},
+        ]
+
+        knowledge = hi.build_knowledge_block(search_results, max_results=1)
+
+        self.assertIn("[[Hoid]]: A", knowledge)
+        self.assertNotIn("[[Roshar]]: B", knowledge)
+
     def test_serialize_search_results_returns_message_for_empty_results(self):
         self.assertEqual(hi.serialize_search_results([]), "Sin resultados recuperados.")
 
@@ -180,6 +210,15 @@ class HacerInferenciaTests(unittest.TestCase):
             result = hi.get_LLM_response("gpt-test", "user", "system")
 
         self.assertEqual(result, "ERROR")
+
+    def test_get_llm_response_raises_type_error_for_unsupported_content(self):
+        unsupported_response = SimpleNamespace(content={"unexpected": "payload"})
+
+        with patch("helpers.hacer_inferencia.get_chat_llm") as mock_get_chat_llm:
+            mock_get_chat_llm.return_value.invoke.return_value = unsupported_response
+
+            with self.assertRaises(TypeError):
+                hi.get_LLM_response("gpt-test", "user", "system")
 
 
 if __name__ == "__main__":

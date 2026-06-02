@@ -25,6 +25,9 @@ class ChatMemoryTests(unittest.TestCase):
         )
         self.assertEqual(formatted, "Usuario: Hola\nAsistente: Mundo")
 
+    def test_format_history_for_prompt_returns_placeholder_when_empty(self):
+        self.assertEqual(format_history_for_prompt([]), "No hay historial previo.")
+
     def test_format_exchange_for_summary_strips_whitespace(self):
         summary = format_exchange_for_summary(" Hoid? ", " Sí ")
         self.assertEqual(summary, "Usuario: Hoid?\nAsistente: Sí")
