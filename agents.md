@@ -64,7 +64,7 @@ Antes de cerrar una tarea:
 Repositorio de un **chatbot RAG agéntico sobre el Cosmere** con:
 
 - indexación local de documentos Markdown en `Base de datos_Cosmere\`
-- recuperación semántica sobre embeddings serializados en `Indice\`
+- recuperación sobre un knowledge graph serializado en `Indice\`
 - generación de respuesta con `langchain-openai`
 - interfaz web en Streamlit
 - pipeline de evaluación automática basado en Excel
@@ -73,11 +73,11 @@ La versión de Python esperada es **3.11.11**.
 
 ## 2. Mapa rápido del repositorio
 
-- `crear_indice.py`: reconstruye el índice vectorial.
+- `crear_indice.py`: reconstruye el knowledge graph.
 - `hacer_inferencia.py`: prueba rápida por terminal.
 - `inferencia_interfaz.py`: puente entre la UI y el orquestador.
 - `interfaz.py`: app Streamlit.
-- `helpers\crear_indice.py`: chunking, embeddings y serialización.
+- `helpers\crear_indice.py`: extracción documental, relaciones y serialización.
 - `helpers\hacer_inferencia.py`: retrieval, cliente LLM y utilidades.
 - `helpers\agentic_chatbot_orchestrator.py`: flujo agéntico con tool calling.
 - `helpers\chat_memory.py`: historial reciente y resumen conversacional.
@@ -153,7 +153,7 @@ python -m unittest discover -v -s tests -p "test_*.py" -t .
 
 ## 6. Cómo tocar el código sin romper el proyecto
 
-- Si cambias lógica de chunking, embeddings o carga de datos, asume que hay que **regenerar `Indice\`**.
+- Si cambias lógica de extracción, relaciones o carga de datos, asume que hay que **regenerar `Indice\`**.
 - Si cambias el formato de respuesta del orquestador, revisa `inferencia_interfaz.py` e `interfaz.py`.
 - Si cambias retrieval o citación, revisa también `GS_0_retrieval.py` y `GS_2_fuentes.py`.
 - Si cambias prompts o decisiones del agente, mira `helpers\LLM_prompts.py` y el límite de iteraciones del orquestador.

@@ -138,7 +138,7 @@ def _build_agent_messages(question, conversation_history, conversation_summary):
 
 @tool
 def search_knowledge_base_tool(query: str) -> str:
-    """Busca en la base vectorial del Cosmere y devuelve fragmentos relevantes para responder."""
+    """Busca en el knowledge graph del Cosmere y devuelve fragmentos relevantes para responder."""
     chunks, embeddings, model = load_index_data()
     results = search_knowledge_base(query, chunks, embeddings, model, DEFAULT_TOP_N)
     if not results:

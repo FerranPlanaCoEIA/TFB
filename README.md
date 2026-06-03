@@ -2,8 +2,8 @@
 
 Chatbot RAG agéntico de la Coppermind (Cosmere) con:
 
-- Construcción de índice vectorial desde documentos Markdown.
-- Recuperación semántica de chunks relevantes.
+- Construcción de un knowledge graph local desde documentos Markdown.
+- Recuperación basada en entidades, relaciones y contexto documental.
 - Tool calling nativo para decidir cuándo buscar, repetir búsquedas o responder directamente.
 - Generación de respuesta con LLMs vía `langchain-openai` (`ChatOpenAI`).
 - Interfaz web en Streamlit.
@@ -35,10 +35,9 @@ El proyecto implementa un sistema RAG para responder preguntas sobre el Cosmere 
 
 Flujo general:
 
-1. Se procesan documentos `.md` y se dividen en chunks.
-2. Se generan embeddings de esos chunks.
-3. Se guarda un índice local serializado (`Indice/`).
-4. Ante una pregunta, se recuperan los chunks más similares por similitud coseno.
+1. Se procesan documentos `.md` y se extraen entidades, relaciones y resúmenes documentales.
+2. Se construye un knowledge graph local serializado en `Indice/`.
+3. Ante una pregunta, se priorizan documentos y relaciones relevantes dentro del grafo.
 5. Se construye un prompt con conocimiento recuperado.
 6. Se consulta un LLM mediante `langchain-openai` y un endpoint compatible con Azure OpenAI.
 7. Se devuelve una respuesta con referencias.
@@ -140,19 +139,15 @@ AZURE_OPENAI_API_KEY=...
 
 ## Cómo usar el proyecto
 
-### 1) Crear índice vectorial
+### 1) Crear índice del knowledge graph
 
-Genera chunks + embeddings y guarda artefactos en `Indice/`.
+Genera documentos, relaciones y metadatos del grafo y guarda artefactos en `Indice/`.
 
 ```bash
 python crear_indice.py
 ```
 
-Parámetros relevantes en `crear_indice.py`:
-
-- `chunk_size=100`
-- `chunk_overlap=20`
-- `model_embeddings="distiluse-base-multilingual-cased-v2"`
+El proceso analiza los Markdown de `Base de datos_Cosmere/`, detecta títulos de documentos, relaciones de infobox y menciones en texto, y serializa el resultado para el retrieval del chatbot.
 
 ### 2) Inferencia por terminal (rápida)
 
@@ -250,7 +245,7 @@ python -m unittest discover -s tests -v
 Objetivos de la suite:
 
 - validar helpers puros y contratos internos
-- cubrir el flujo de retrieval y tool calling sin red
+- cubrir el flujo de retrieval por grafo y tool calling sin red
 - comprobar el comportamiento observable del chatbot ante saludos, preguntas factuales y falta de conocimiento
 
 ## Detalles de implementación
@@ -259,7 +254,8 @@ Objetivos de la suite:
   - `Indice/chunks_with_ids.pkl`
   - `Indice/embeddings.pkl`
   - `Indice/model.pkl`
-- Recuperación por similitud coseno (`sklearn.metrics.pairwise.cosine_similarity`).
+- Esos nombres de fichero se mantienen por compatibilidad, pero ahora contienen documentos del grafo, adyacencias y metadatos.
+- Recuperación basada en knowledge graph: coincidencia de entidades, solapamiento léxico y relaciones detectadas entre documentos.
 - Cliente LLM unificado con `langchain_openai.ChatOpenAI`.
 - El prompt del modo `elaborate_responses` fuerza uso exclusivo del contexto recuperado.
 - En la interfaz, las referencias `[[...]]` devueltas por el LLM se convierten a enlaces HTML de la wiki.
@@ -278,9 +274,9 @@ Objetivos de la suite:
 	- Causa probable: versión de Python distinta a 3.11.11.
 	- Solución: recrea el entorno con la versión indicada.
 
-4. **Error de certificados al crear embeddings en Windows**
-	- Causa probable: el entorno virtual no confía en el certificado raíz corporativo al descargar modelos desde Hugging Face.
-	- Solución: reinstala dependencias con `pip install -r requirements.txt` para incluir `python-certifi-win32`.
+4. **El índice no refleja cambios recientes en los Markdown**
+	- Causa probable: no se ha regenerado el knowledge graph después de modificar `Base de datos_Cosmere/`.
+	- Solución: vuelve a ejecutar `python crear_indice.py`.
 
 5. **No aparece fondo/recursos en Streamlit**
 	- Causa probable: ruta incorrecta de imagen o ejecución fuera de la raíz.

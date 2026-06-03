@@ -2,10 +2,9 @@ import os
 import tempfile
 import unittest
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import httpx
-import numpy as np
 
 from helpers import crear_indice as ci
 from helpers import hacer_inferencia as hi
@@ -13,52 +12,92 @@ from tests.support import sample_index_data
 
 
 class CrearIndiceTests(unittest.TestCase):
-    def test_process_markdown_creates_overlapping_chunks(self):
+    def test_process_markdown_extracts_document_summary_and_tokens(self):
+        markdown = """# Hoid
+
+| Universo | Cosmere |
+| Vinculado con | Roshar |
+
+Hoid es un personaje misterioso del Cosmere que aparece en Roshar.
+"""
         with tempfile.TemporaryDirectory() as temp_dir:
             file_path = os.path.join(temp_dir, "doc.md")
             with open(file_path, "w", encoding="utf-8") as file:
-                file.write("uno dos tres cuatro cinco seis siete ocho")
+                file.write(markdown)
 
-            chunks = ci.process_markdown(file_path, 3, "doc.md", 3, 1)
+            document = ci.process_markdown(file_path, 3, "doc.md")
 
-        expected = [
-            (3, "doc.md", 0, "uno dos tres"),
-            (3, "doc.md", 1, "tres cuatro cinco"),
-            (3, "doc.md", 2, "cinco seis siete"),
-            (3, "doc.md", 3, "siete ocho"),
-        ]
-        self.assertEqual(chunks, expected)
+        self.assertEqual(document["doc_id"], 3)
+        self.assertEqual(document["display_name"], "doc")
+        self.assertIn("Hoid es un personaje misterioso", document["summary"])
+        self.assertIn("hoid", document["tokens"])
+        self.assertEqual(document["infobox"]["Universo"], "Cosmere")
 
-    def test_process_markdown_returns_empty_for_missing_file(self):
-        chunks = ci.process_markdown("C:\\no-existe.md", 0, "no-existe.md", 10, 2)
-        self.assertEqual(chunks, [])
+    def test_process_markdown_returns_none_for_missing_file(self):
+        document = ci.process_markdown("C:\\no-existe.md", 0, "no-existe.md")
+        self.assertIsNone(document)
 
     def test_process_all_markdown_files_reads_only_markdown_sorted(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             with open(os.path.join(temp_dir, "b.md"), "w", encoding="utf-8") as file:
-                file.write("beta uno dos")
+                file.write("# Beta\n\nBeta aparece en Cosmere.")
             with open(os.path.join(temp_dir, "a.md"), "w", encoding="utf-8") as file:
-                file.write("alfa uno dos")
+                file.write("# Alfa\n\nAlfa aparece en Roshar.")
             with open(os.path.join(temp_dir, "z.txt"), "w", encoding="utf-8") as file:
                 file.write("ignorar")
 
-            chunks = ci.process_all_markdown_files(temp_dir, 10, 1)
+            documents = ci.process_all_markdown_files(temp_dir)
 
-        self.assertEqual([chunk[1] for chunk in chunks], ["a.md", "b.md"])
-        self.assertEqual([chunk[0] for chunk in chunks], [0, 1])
+        self.assertEqual([document["doc_name"] for document in documents], ["a.md", "b.md"])
+        self.assertEqual([document["doc_id"] for document in documents], [0, 1])
+
+    def test_build_knowledge_graph_extracts_relations_from_infobox_and_text(self):
+        documents = [
+            {
+                "doc_id": 0,
+                "doc_name": "Hoid.md",
+                "display_name": "Hoid",
+                "summary": "Hoid viaja a Roshar.",
+                "text": "Hoid viaja a Roshar y se enfrenta a Odium.",
+                "tokens": ["hoid", "roshar", "odium"],
+                "infobox": {"Vinculado con": "Roshar"},
+            },
+            {
+                "doc_id": 1,
+                "doc_name": "Roshar.md",
+                "display_name": "Roshar",
+                "summary": "Roshar es un planeta.",
+                "text": "Roshar es un planeta.",
+                "tokens": ["roshar", "planeta"],
+                "infobox": {},
+            },
+            {
+                "doc_id": 2,
+                "doc_name": "Odium.md",
+                "display_name": "Odium",
+                "summary": "Odium es una Esquirla.",
+                "text": "Odium es una Esquirla.",
+                "tokens": ["odium", "esquirla"],
+                "infobox": {},
+            },
+        ]
+
+        adjacency, metadata = ci.build_knowledge_graph(documents)
+
+        self.assertIn("hoid", metadata["title_to_doc_id"])
+        self.assertIn((1, "vinculado_con"), {(edge["target"], edge["relation"]) for edge in adjacency[0]})
+        self.assertIn((2, "mencionado_en_texto"), {(edge["target"], edge["relation"]) for edge in adjacency[0]})
 
     def test_save_and_load_data_round_trip(self):
-        chunks = [(0, "doc.md", 0, "texto")]
-        embeddings = np.array([[1.0, 2.0]])
-        model = {"name": "fake-model"}
+        documents, adjacency, metadata = sample_index_data()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            ci.save_data(chunks, embeddings, model, temp_dir)
-            loaded_chunks, loaded_embeddings, loaded_model = ci.load_data(temp_dir)
+            ci.save_data(documents, adjacency, metadata, temp_dir)
+            loaded_documents, loaded_adjacency, loaded_metadata = ci.load_data(temp_dir)
 
-        self.assertEqual(loaded_chunks, chunks)
-        self.assertTrue(np.array_equal(loaded_embeddings, embeddings))
-        self.assertEqual(loaded_model, model)
+        self.assertEqual(loaded_documents, documents)
+        self.assertEqual(loaded_adjacency, adjacency)
+        self.assertEqual(loaded_metadata, metadata)
 
 
 class HacerInferenciaTests(unittest.TestCase):
@@ -93,68 +132,31 @@ class HacerInferenciaTests(unittest.TestCase):
             temperature=0.3,
         )
 
-    def test_patch_transformer_config_adds_missing_flags(self):
-        config = SimpleNamespace(_output_attentions=True, _output_hidden_states=False)
-        auto_model = SimpleNamespace(config=config)
-        model = SimpleNamespace(_modules={"layer": SimpleNamespace(auto_model=auto_model)})
+    def test_get_similar_chunks_prioritizes_direct_entity_matches(self):
+        documents, adjacency, metadata = sample_index_data()
 
-        patched = hi._patch_transformer_config(model)
-
-        self.assertIs(patched, model)
-        self.assertTrue(config.output_attentions)
-        self.assertFalse(config.output_hidden_states)
-        self.assertFalse(auto_model._use_flash_attention_2)
-        self.assertFalse(auto_model._use_sdpa)
-
-    def test_encode_question_uses_fallback_model_when_original_model_keeps_failing(self):
-        class BrokenModel:
-            def encode(self, _texts):
-                raise AttributeError("broken")
-
-        fallback_model = Mock()
-        fallback_model.encode.return_value = np.array([[0.2, 0.8]])
-
-        with patch("helpers.hacer_inferencia.SentenceTransformer", return_value=fallback_model):
-            embedding, resolved_model = hi._encode_question("Roshar", BrokenModel())
-
-        self.assertTrue(np.array_equal(embedding, np.array([[0.2, 0.8]])))
-        self.assertIs(resolved_model, fallback_model)
-
-    def test_encode_question_uses_patched_model_when_second_attempt_succeeds(self):
-        class BrokenThenFixedModel:
-            def __init__(self):
-                self._attempts = 0
-                self._modules = {}
-
-            def encode(self, _texts):
-                self._attempts += 1
-                if self._attempts == 1:
-                    raise AttributeError("broken first pass")
-                return np.array([[0.4, 0.6]])
-
-        model = BrokenThenFixedModel()
-
-        embedding, resolved_model = hi._encode_question("Roshar", model)
-
-        self.assertTrue(np.array_equal(embedding, np.array([[0.4, 0.6]])))
-        self.assertIs(resolved_model, model)
-
-    def test_get_similar_chunks_returns_results_sorted_by_similarity(self):
-        chunks, embeddings, model = sample_index_data()
-
-        results = hi.get_similar_chunks("Háblame de Hoid", chunks, embeddings, model, top_n=2)
+        results = hi.get_similar_chunks("Háblame de Hoid", documents, adjacency, metadata, top_n=2)
 
         self.assertEqual(results[0][0][1], "es.coppermind.net__wiki_Hoid.md")
         self.assertGreaterEqual(results[0][1], results[1][1])
 
-    def test_search_knowledge_base_formats_results(self):
-        chunks, embeddings, model = sample_index_data()
+    def test_get_similar_chunks_uses_graph_relations(self):
+        documents, adjacency, metadata = sample_index_data()
 
-        results = hi.search_knowledge_base("Roshar", chunks, embeddings, model, top_n=1)
+        results = hi.get_similar_chunks("¿Qué relación hay entre Hoid y Odium?", documents, adjacency, metadata, top_n=1)
+
+        self.assertIn(results[0][0][1], {"es.coppermind.net__wiki_Hoid.md", "es.coppermind.net__wiki_Odium.md"})
+        self.assertIn("Relaciones relevantes", results[0][0][3])
+        self.assertIn("Odium", results[0][0][3])
+
+    def test_search_knowledge_base_formats_results(self):
+        documents, adjacency, metadata = sample_index_data()
+
+        results = hi.search_knowledge_base("Roshar", documents, adjacency, metadata, top_n=1)
 
         self.assertEqual(results[0]["display_name"], "Roshar")
         self.assertEqual(results[0]["doc_name"], "es.coppermind.net__wiki_Roshar.md")
-        self.assertIn("planeta", results[0]["chunk_text"])
+        self.assertIn("planeta", results[0]["chunk_text"].lower())
 
     def test_build_knowledge_block_and_serialize_results(self):
         search_results = [
@@ -187,7 +189,6 @@ class HacerInferenciaTests(unittest.TestCase):
         self.assertEqual(hi.serialize_search_results([]), "Sin resultados recuperados.")
 
     def test_get_llm_response_supports_string_and_list_blocks(self):
-        request = httpx.Request("POST", "https://example.test")
         string_response = SimpleNamespace(content="respuesta plana")
         block_response = SimpleNamespace(content=[{"text": "bloque 1"}, {"text": "bloque 2"}])
 

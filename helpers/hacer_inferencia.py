@@ -1,14 +1,60 @@
 import os
+import re
 
-import numpy as np
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from openai import APIConnectionError, APIError, APITimeoutError, RateLimitError
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+from unidecode import unidecode
 
 
-DEFAULT_EMBEDDINGS_MODEL = "distiluse-base-multilingual-cased-v2"
+STOPWORDS = {
+    "a",
+    "al",
+    "algo",
+    "como",
+    "con",
+    "cual",
+    "cuales",
+    "cuanto",
+    "cuantos",
+    "de",
+    "del",
+    "donde",
+    "el",
+    "en",
+    "es",
+    "esta",
+    "este",
+    "hay",
+    "la",
+    "las",
+    "lo",
+    "los",
+    "para",
+    "por",
+    "que",
+    "quien",
+    "se",
+    "sobre",
+    "su",
+    "sus",
+    "un",
+    "una",
+    "y",
+}
+
+
+def _normalize_text(text):
+    normalized = unidecode(str(text or "")).lower()
+    return " ".join(normalized.split())
+
+
+def _tokenize(text):
+    return [
+        token
+        for token in re.findall(r"[a-z0-9]+", _normalize_text(text))
+        if len(token) > 1 and token not in STOPWORDS
+    ]
 
 
 def get_chat_llm(endpoint_model, temperature=0):
@@ -28,44 +74,87 @@ def get_chat_llm(endpoint_model, temperature=0):
     )
 
 
-def _patch_transformer_config(model):
-    for module in getattr(model, "_modules", {}).values():
-        auto_model = getattr(module, "auto_model", None)
-        if auto_model is None or not hasattr(auto_model, "config"):
-            continue
-
-        config = auto_model.config
-        if not hasattr(config, "output_attentions") and hasattr(config, "_output_attentions"):
-            config.output_attentions = config._output_attentions
-        if not hasattr(config, "output_hidden_states") and hasattr(config, "_output_hidden_states"):
-            config.output_hidden_states = config._output_hidden_states
-        if not hasattr(auto_model, "_use_flash_attention_2"):
-            auto_model._use_flash_attention_2 = False
-        if not hasattr(auto_model, "_use_sdpa"):
-            auto_model._use_sdpa = False
-
-    return model
+def _document_lookup(documents):
+    return {document["doc_id"]: document for document in documents}
 
 
-def _encode_question(question, model):
-    try:
-        return model.encode([question]), model
-    except AttributeError:
-        patched_model = _patch_transformer_config(model)
-        try:
-            return patched_model.encode([question]), patched_model
-        except AttributeError:
-            fallback_model = SentenceTransformer(DEFAULT_EMBEDDINGS_MODEL)
-            return fallback_model.encode([question]), fallback_model
+def _edge_score(question_normalized, query_tokens, edge, documents_by_id):
+    target = documents_by_id[edge["target"]]
+    relation_text = f"{edge['relation']} {target['display_name']}"
+    relation_tokens = set(_tokenize(relation_text))
+    score = 0.0
+
+    target_name = _normalize_text(target["display_name"])
+    if target_name and target_name in question_normalized:
+        score += 3.0
+
+    overlap = len(query_tokens & relation_tokens)
+    if overlap:
+        score += overlap * 0.6
+
+    return score
 
 
+def _build_context(document, edges, documents_by_id):
+    relation_lines = []
+    for _score, edge in edges[:3]:
+        target = documents_by_id[edge["target"]]["display_name"]
+        relation = edge["relation"].replace("_", " ")
+        relation_lines.append(f"{relation}: {target}")
 
-# Función para obtener los chunks más similares
+    summary = document["summary"].strip()
+    if relation_lines:
+        return f"{summary}\nRelaciones relevantes: " + "; ".join(relation_lines)
+    return summary
+
+
 def get_similar_chunks(question, chunks, embeddings, model, top_n):
-    question_embedding, _resolved_model = _encode_question(question, model)
-    similarities = cosine_similarity(question_embedding, embeddings)[0]
-    top_indices = np.argsort(similarities)[-top_n:][::-1]
-    return [(chunks[i], similarities[i]) for i in top_indices]
+    question_normalized = _normalize_text(question)
+    query_tokens = set(_tokenize(question))
+    documents_by_id = _document_lookup(chunks)
+    matched_doc_ids = {
+        doc_id
+        for normalized_title, doc_id in model.get("title_to_doc_id", {}).items()
+        if normalized_title and normalized_title in question_normalized
+    }
+    scored_results = []
+
+    for document in chunks:
+        title_normalized = _normalize_text(document["display_name"])
+        title_tokens = set(_tokenize(document["display_name"]))
+        document_tokens = set(document.get("tokens", []))
+
+        score = 0.0
+        if document["doc_id"] in matched_doc_ids:
+            score += 12.0
+        if title_normalized and title_normalized in question_normalized:
+            score += 5.0
+
+        score += len(query_tokens & title_tokens) * 1.5
+        if query_tokens:
+            score += (len(query_tokens & document_tokens) / len(query_tokens)) * 3.0
+
+        edge_matches = []
+        for edge in embeddings.get(document["doc_id"], []):
+            edge_match_score = _edge_score(question_normalized, query_tokens, edge, documents_by_id)
+            if edge["target"] in matched_doc_ids:
+                edge_match_score += 1.5
+            if edge_match_score > 0:
+                edge_matches.append((edge_match_score, edge))
+
+        edge_matches.sort(key=lambda item: item[0], reverse=True)
+        score += sum(match_score for match_score, _edge in edge_matches[:2])
+
+        context = _build_context(document, edge_matches, documents_by_id)
+        scored_results.append(
+            (
+                (document["doc_id"], document["doc_name"], 0, context),
+                float(score),
+            )
+        )
+
+    scored_results.sort(key=lambda item: item[1], reverse=True)
+    return scored_results[:top_n]
 
 
 def search_knowledge_base(question, chunks, embeddings, model, top_n):
@@ -118,7 +207,6 @@ def serialize_search_results(search_results, max_results=5, max_chars=3000):
     return serialized_results
 
 
-# Función para obtener la respuesta de un LLM
 def get_LLM_response(endpoint_model, user_prompt, system_prompt, temperature=0):
     messages = [
         SystemMessage(content=system_prompt),
@@ -136,6 +224,6 @@ def get_LLM_response(endpoint_model, user_prompt, system_prompt, temperature=0):
             )
         raise TypeError(f"Tipo de respuesta no soportado: {type(response.content)!r}")
 
-    except (APIConnectionError, APITimeoutError, APIError, RateLimitError) as e:
-        print(f"Error al llamar a Azure OpenAI: {e}")
+    except (APIConnectionError, APITimeoutError, APIError, RateLimitError) as error:
+        print(f"Error al llamar a Azure OpenAI: {error}")
         return "ERROR"

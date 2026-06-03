@@ -19,16 +19,16 @@ script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
 save_folder = os.path.join(script_dir, 'Indice')
 
 
-# Cargar los datos procesados
+# Cargar los datos del knowledge graph
 chunks, embeddings, model = load_data(save_folder)
 
 
-# Obtener los chunks más similares
+# Obtener los documentos y relaciones más relevantes
 similar_chunks = get_similar_chunks(question, chunks, embeddings, model, top_n)
 
 # Mostrar los resultados
 user_prompt=f"Pregunta: {question}\n\nConocimiento:\n"
-print("Los 10 chunks más similares a tu pregunta son:\n")
+print("Los 10 resultados más relevantes del knowledge graph para tu pregunta son:\n")
 for i, (chunk, similarity) in enumerate(similar_chunks, 1):
     # Desempaquetar la tupla (doc_id, doc_name, chunk_number, chunk_text)
     doc_id, doc_name, chunk_number, chunk_text = chunk

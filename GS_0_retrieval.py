@@ -8,17 +8,17 @@ from helpers.hacer_inferencia import get_similar_chunks
 top_n=10
 ######
 
-print("Ejecutando...")
+print("Ejecutando retrieval sobre knowledge graph...")
 
 # Definir la carpeta en Google Drive donde se guardaron los datos
 script_dir = os.path.dirname(os.path.abspath(__file__)) # Path de este script
 save_folder = os.path.join(script_dir, 'Indice')
 
-# Cargar los datos procesados
+# Cargar los datos del knowledge graph
 chunks, embeddings, model = load_data(save_folder)
 
 
-# Test Automático (RAG)
+# Test Automático (RAG sobre knowledge graph)
 
 ruta_input= os.path.join(script_dir, 'Input Test Automático.xlsx') # Path del input del test
 ruta_output= os.path.join(script_dir, 'Output Test Automático.xlsx') # Path del output del test

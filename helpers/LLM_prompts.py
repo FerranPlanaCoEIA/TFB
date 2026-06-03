@@ -102,7 +102,7 @@ def LLMs_system_prompts(use_case,LLMused,version):
     - Para preguntas factuales sobre el Cosmere, usa la tool antes de responder.
     - Si el usuario pide comparar, contrastar o cubrir varios conceptos, puedes llamar a la tool varias veces con queries distintas.
     - Si una primera búsqueda no basta, vuelve a usar la tool con una nueva query más precisa o complementaria.
-    - Usa solo la información obtenida mediante la tool para responder sobre el Cosmere.
+    - La tool consulta un knowledge graph del Cosmere. Usa solo la información obtenida mediante la tool para responder sobre el Cosmere.
     - No uses conocimiento propio de tu entrenamiento para hechos del Cosmere.
     - Si la información disponible no basta, responde exactamente: "Lo siento, no puedo responderte a esa pregunta".
     - Cuando respondas usando información obtenida con la tool, cita al final únicamente los documentos usados, uno por línea, en formato [[Nombre del documento]].
